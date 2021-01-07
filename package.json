@@ -1,24 +1,24 @@
 {
-  "name": "iobroker-jsonhelper",
+  "name": "iobroker-jsonexplorer",
   "version": "0.0.0",
-  "description": "Suppoerts to create ioBroker states based on a json-object",
-  "main": "jsonHelper.js",
+  "description": "Creates ioBroker states based on a json-object",
+  "main": "jsonExplorer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HGlab01/ioBroker-jsonHelper.git"
+    "url": "git+https://github.com/HGlab01/ioBroker-jsonExplorer.git"
   },
   "keywords": [
+    "ioBroker",
     "json",
-    "helper",
-    "ioBroker"
+    "traverse"
   ],
-  "author": "HGlab01",
+  "author": "HGab01 & Dutchmann",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/HGlab01/ioBroker-jsonHelper/issues"
+    "url": "https://github.com/HGlab01/ioBroker-jsonExplorer/issues"
   },
-  "homepage": "https://github.com/HGlab01/ioBroker-jsonHelper#readme"
+  "homepage": "https://github.com/HGlab01/ioBroker-jsonExplorer#readme"
 }
