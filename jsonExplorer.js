@@ -98,6 +98,64 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
     try {
 
+        /**
+         * Value rounding 1 digits
+         * @param {number} [value] - Number to round with . separator
+         *  @param {object} [adapter] - intance "this" object
+         */
+        function rondOneDigit(value,  adapter) {
+            try {
+                let rounded = Number(value);
+                rounded = Math.round(rounded * 100) / 100;
+                adapter.log.debug(`roundCosts with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundCosts ${value}`);
+                adapter.sendSentry(error);
+            }
+        }
+        /**
+         * Value rounding 2 digits
+         * @param {number} [value] - Number to round with , separator
+         * @param {object} [adapter] - intance "this" object
+         */
+        function roundTwoDigits(value, adapter) {
+            let rounded;
+            try {
+                rounded = Number(value);
+                rounded = Math.round(rounded * 1000) / 1000;
+                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundDigits ${value}`);
+                adapter.sendSentry(error);
+                rounded = value;
+                return rounded;
+            }
+        }
+        /**
+         * Value rounding 3 digits
+         * @param {number} [value] - Number to round with , separator
+         * @param {object} [adapter] - intance "this" object
+         */
+        function roundThreeDigits(value, adapter) {
+            let rounded;
+            try {
+                rounded = Number(value);
+                rounded = Math.round(rounded * 1000) / 1000;
+                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundDigits ${value}`);
+                adapter.sendSentry(error);
+                rounded = value;
+                return rounded;
+            }
+        }
+
         // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
         const common = {};
         if (!stateAttr[name]) {
@@ -140,8 +198,23 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         // Store current object definition to memory
         adapter.createdStatesDetails[stateName] = common;
 
+        // Check if value should be rounded, active switch
+        const roundingOneDigit = stateAttr[name] !== undefined ? stateAttr[name].round_1 || false : false;
+        const roundingTwoDigits = stateAttr[name] !== undefined ? stateAttr[name].round_2 || false : false;
+        const roundingThreeDigits = stateAttr[name] !== undefined ? stateAttr[name].round_3 || false : false;
+
         // Set value to state
         if (value !== null || value !== undefined) {
+            // Check if value should be rounded, if yes execute
+            if (typeof value == 'number' || typeof value == 'string') {
+                if (roundingOneDigit) {
+                    value = rondOneDigit(value, this);
+                } else if (roundingTwoDigits) {
+                    value = roundTwoDigits(value, this);
+                } else if (roundingThreeDigits) {
+                    value = roundThreeDigits(value, this);
+                }
+            }
             await adapter.setStateAsync(stateName, {
                 val: value,
                 ack: true,
