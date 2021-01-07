@@ -10,7 +10,7 @@ in section "Load your modules here"
 Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor.  
 
 ## How to use
-Call `await JsonHelper.TraverseJson(this, result, parent, true, false);`  
+Call `await JsonExplorer.TraverseJson(this, result, parent, true, false);`  
 result: JSON object to be addad as states  
 parent: name of the parent state; null results in root  
 replaceName: true|false; if yes, the description of a channel will be replaced by the name of a leaf-state if available  
@@ -18,5 +18,5 @@ replaceID: true|false; if yes, the description of a channel will be replaced by 
 
 
 ### Expire management (optional)
-All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonHelper.setLastStartTime(this)` before calling `JsonHelper.TraverseJson()`
-and `JsonHelper.checkExpire(this, parent)` after caling `JsonHelper.TraverseJson()`
+All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonExplorer.setLastStartTime(this)` before calling `JsonExplorer.TraverseJson()`
+and `JsonExplorer.checkExpire(this, parent)` after caling `JsonExplorer.TraverseJson()`
