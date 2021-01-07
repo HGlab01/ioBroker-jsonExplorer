@@ -1,1 +1,1 @@
-# ioBroker-jsonHelper
+# ioBroker JsonExplorer

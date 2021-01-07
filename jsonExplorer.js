@@ -3,12 +3,19 @@
 /* Thanks for sharing!                                               */
 /*********************************************************************/
 
-const stateAttr = require(`${__dirname}/stateAttr.js`); // Load attribute library
 const disableSentry = true; // Ensure to set to true during development!
-let stateExpire = {}, warnMessages = {};
+let stateExpire = {}, warnMessages = {}, stateAttr = {};
 
-function init(adapter) {
+function init(adapter, stateAttribute) {
     adapter.createdStatesDetails = {};
+    stateAttr = stateAttribute;
+}
+
+/**
+ * @param {object} adapter Adapter-Class
+ */
+async function setLastStartTime(adapter) {
+    await create_state(adapter, 'online', 'online', true);
 }
 
 /**
@@ -19,7 +26,7 @@ function init(adapter) {
  * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
  * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel)
  */
-async function TraverseJson(adapter, o, parent = null, replaceName = false, replaceID = false) {
+async function TraverseJson(adapter, o, parent = null, replaceName = false, replaceID = false, state_expire = 0) {
     let id = null;
     let value = null;
     let name = null;
@@ -71,7 +78,7 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.debug('create id ' + id + ' with value ' + value + ' and name ' + name);
-                    create_state(adapter, id, name, value);
+                    create_state(adapter, id, name, value, state_expire);
                 }
             }
         }
@@ -85,9 +92,9 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
  * @param {object} adapter Adapter-Class
  * @param {string} stateName ID of the state
  * @param {string} name Name of the state
- * @param {string | null} value Value of the state
+ * @param {string | null | boolean} value Value of the state
  */
-async function create_state(adapter, stateName, name, value) {
+async function create_state(adapter, stateName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
     try {
 
@@ -137,7 +144,8 @@ async function create_state(adapter, stateName, name, value) {
         if (value !== null || value !== undefined) {
             await adapter.setStateAsync(stateName, {
                 val: value,
-                ack: true
+                ack: true,
+                expire: expire
             });
         }
 
@@ -235,5 +243,6 @@ module.exports = {
     TraverseJson: TraverseJson,
     create_state: create_state,
     checkExpire: checkExpire,
-    init: init
+    init: init,
+    setLastStartTime: setLastStartTime
 };
