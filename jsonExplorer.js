@@ -89,21 +89,23 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
 
 
 /**
- * @param {object} adapter Adapter-Class
- * @param {string} stateName ID of the state
- * @param {string} name Name of the state
- * @param {string | null | boolean} value Value of the state
+ * Function to handle state creation
+ * proper object definitions
+ * rounding of values
+ * @param {object} adapter Adapter-Class (normally "this")
+ * @param stateName {string} ID of the state
+ * @param name {string} Name of state (also used for stattAttrlib!)
+ * @param value {boolean | string | null} Value of the state
  */
-async function create_state(adapter, stateName, name, value, expire = 0) {
+async function stateSetCreate(adapter, stateName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
     try {
 
         /**
          * Value rounding 1 digits
          * @param {number} [value] - Number to round with . separator
-         *  @param {object} [adapter] - intance "this" object
          */
-        function rondOneDigit(value,  adapter) {
+        function rondOneDigit(value) {
             try {
                 let rounded = Number(value);
                 rounded = Math.round(rounded * 100) / 100;
@@ -118,9 +120,8 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         /**
          * Value rounding 2 digits
          * @param {number} [value] - Number to round with , separator
-         * @param {object} [adapter] - intance "this" object
          */
-        function roundTwoDigits(value, adapter) {
+        function roundTwoDigits(value) {
             let rounded;
             try {
                 rounded = Number(value);
@@ -138,9 +139,8 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         /**
          * Value rounding 3 digits
          * @param {number} [value] - Number to round with , separator
-         * @param {object} [adapter] - intance "this" object
          */
-        function roundThreeDigits(value, adapter) {
+        function roundThreeDigits(value) {
             let rounded;
             try {
                 rounded = Number(value);
@@ -208,11 +208,11 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
             // Check if value should be rounded, if yes execute
             if (typeof value == 'number' || typeof value == 'string') {
                 if (roundingOneDigit) {
-                    value = rondOneDigit(value, this);
+                    value = rondOneDigit(value);
                 } else if (roundingTwoDigits) {
-                    value = roundTwoDigits(value, this);
+                    value = roundTwoDigits(value);
                 } else if (roundingThreeDigits) {
-                    value = roundThreeDigits(value, this);
+                    value = roundThreeDigits(value);
                 }
             }
             await adapter.setStateAsync(stateName, {
@@ -314,7 +314,7 @@ async function checkExpire(adapter, searchpattern) {
 
 module.exports = {
     TraverseJson: TraverseJson,
-    create_state: create_state,
+    stateSetCreate: stateSetCreate,
     checkExpire: checkExpire,
     init: init,
     setLastStartTime: setLastStartTime
