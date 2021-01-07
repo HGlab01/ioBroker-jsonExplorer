@@ -2,8 +2,8 @@
 
 ## How to prepare
 Create file `/lib/stateAttr.js` based on template `_template/stateAttr.js`and add  
-* const JsonExplorer = require('iobroker-jsonexplorer');
-* const stateAttr = require(__dirname + '/lib/stateAttr.js'); // Load attribute library  
+* `const JsonExplorer = require('iobroker-jsonexplorer');`
+* `const stateAttr = require(__dirname + '/lib/stateAttr.js'); // Load attribute library`  
 in section "Load your modules here"  
 
 
