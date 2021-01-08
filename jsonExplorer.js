@@ -5,8 +5,10 @@
 
 const disableSentry = true; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
+let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
-function init(adapter, stateAttribute) {
+function init(adapterOrigin, stateAttribute) {
+    adapter = adapterOrigin;
     adapter.createdStatesDetails = {};
     stateAttr = stateAttribute;
 }
@@ -220,9 +222,9 @@ async function checkExpire(adapter, searchpattern) {
             return;
         }
 
-        const states = await adapter.getStatesAsync(searchpattern);
-        for (const idS in states) {
-            let state = await adapter.getStateAsync(idS);
+        let states = await adapter.getStatesAsync(searchpattern);
+        for (let idS in states) {
+            state = await adapter.getStateAsync(idS);
             adapter.log.debug(idS + ': ' + state);
             if (state && state.val != null) {
                 let stateTs = state.ts;
