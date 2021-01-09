@@ -125,7 +125,7 @@ async function stateSetCreate(adapter, stateName, name, value, expire = 0) {
             let rounded;
             try {
                 rounded = Number(value);
-                rounded = Math.round(rounded * 1000) / 1000;
+                rounded = Math.round(rounded * 100) / 100;
                 adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
                 if (!rounded) return value;
                 return rounded;
