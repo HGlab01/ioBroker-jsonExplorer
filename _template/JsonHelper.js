@@ -14,7 +14,7 @@
 		role: 'indicator.info',				// {default: state} Role as defined by https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md
 		round_1: true,						// {default: NotUsed} Executed rounding function to 1 digit
 		round_2: true,						// {default: NotUsed} Executed rounding function to 2 digit
-		round_3: true,						// {default: NotUsed} Executed rounding function to 1 digit
+		round_3: true,						// {default: NotUsed} Executed rounding function to 3 digit
 	},
  */
 
