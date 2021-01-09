@@ -29,6 +29,9 @@ Placeholder for release script, not visible in web/admin interface
 -->
 
 ### __WORK IN PROGRESS__
+* 
+
+### 0.0.0-2
 * (DutchmanNL) implement capability to round values 
 * (DutchmanNL) add definition explanation to attribute template
 * (HGlab01) breaking change!!! adapter object removed from all function signatures within json-explorer; to be adopted by all callers
