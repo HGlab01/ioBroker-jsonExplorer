@@ -105,7 +105,7 @@ async function stateSetCreate(adapter, stateName, name, value, expire = 0) {
          * Value rounding 1 digits
          * @param {number} [value] - Number to round with . separator
          */
-        function rondOneDigit(value) {
+        function roundOneDigit(value) {
             try {
                 let rounded = Number(value);
                 rounded = Math.round(rounded * 10) / 10;
