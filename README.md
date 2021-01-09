@@ -33,7 +33,7 @@ Placeholder for release script, not visible in web/admin interface
 * (DutchmanNL) implement capability to round values 
 * (DutchmanNL) add definition explanation to attribute template
 
-### 0.0.1
+### 0.0.0-1
 * (HGlab01) initial release
 
 ## License
