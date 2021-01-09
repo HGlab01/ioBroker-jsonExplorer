@@ -7,6 +7,9 @@ const disableSentry = true; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
+/**
+ * @param {object} adapter Adapter-Class (normally "this")
+ */
 function init(adapterOrigin, stateAttribute) {
     adapter = adapterOrigin;
     adapter.createdStatesDetails = {};
@@ -14,21 +17,20 @@ function init(adapterOrigin, stateAttribute) {
 }
 
 /**
- * @param {object} adapter Adapter-Class
+ * Sets state online to true as reference for outdated states
  */
-async function setLastStartTime(adapter) {
-    await create_state(adapter, 'online', 'online', true);
+async function setLastStartTime() {
+    await stateSetCreate('online', 'online', true);
 }
 
 /**
  * Traeverses the json-object and provides all information for creating/updating states
- * @param {object} adapter Adapter-Class
  * @param {object} o Json-object to be added as states
  * @param {string | null} parent Defines the parent object in the state tree
  * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
  * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel)
  */
-async function TraverseJson(adapter, o, parent = null, replaceName = false, replaceID = false, state_expire = 0) {
+async function TraverseJson(o, parent = null, replaceName = false, replaceID = false, state_expire = 0) {
     let id = null;
     let value = null;
     let name = null;
@@ -64,7 +66,7 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
                         },
                         'native': {},
                     });
-                    TraverseJson(adapter, o[i], id, replaceName, replaceID);
+                    TraverseJson(o[i], id, replaceName, replaceID);
                 } else {
                     console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.debug('State ' + id + ' received with empty array, ignore channel creation');
@@ -80,7 +82,7 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.debug('create id ' + id + ' with value ' + value + ' and name ' + name);
-                    create_state(adapter, id, name, value, state_expire);
+                    stateSetCreate(id, name, value, state_expire);
                 }
             }
         }
@@ -94,12 +96,11 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
  * Function to handle state creation
  * proper object definitions
  * rounding of values
- * @param {object} adapter Adapter-Class (normally "this")
  * @param objName {string} ID of the state
  * @param name {string} Name of state (also used for stattAttrlib!)
  * @param value {boolean | string | null} Value of the state
  */
-async function stateSetCreate(adapter, objName, name, value, expire = 0) {
+async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
     try {
 
@@ -164,7 +165,7 @@ async function stateSetCreate(adapter, objName, name, value, expire = 0) {
             if (warnMessages[name] !== warnMessage) {
                 warnMessages[name] = warnMessage;
                 // Send information to Sentry
-                sendSentry(adapter, warnMessage);
+                sendSentry(warnMessage);
             }
         }
         common.name = stateAttr[name] !== undefined ? stateAttr[name].name || name : name;
@@ -251,10 +252,9 @@ async function stateSetCreate(adapter, objName, name, value, expire = 0) {
 }
 
 /**
- * @param {object} adapter Adapter-Class
  * @param {string} msg Error message
  */
-function sendSentry(adapter, msg) {
+function sendSentry(msg) {
     try {
         if (!disableSentry) {
             adapter.log.info(`[Error catched and send to Sentry, thank you collaborating!] error: ${msg}`);
@@ -275,10 +275,9 @@ function sendSentry(adapter, msg) {
 
 /**
  * Handles the expire if a value is no longer responsed in the API call
- * @param {object} adapter Adapter-Class
  * @param {string} searchpattern defines wich states should be checked, e.g. '*' or 'xyz.abcd.*' or 'xyz.*ab*.fgh'
  */
-async function checkExpire(adapter, searchpattern) {
+async function checkExpire(searchpattern) {
     try {
         let state = await adapter.getStateAsync('online');
         let onlineTs = 0;
