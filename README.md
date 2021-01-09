@@ -10,7 +10,7 @@ Placeholder for release script, not visible in web/admin interface
 
 ### __WORK IN PROGRESS__
 * (DutchmanNL) implement capability to round values 
-(DutchmanNL) add definition explanation to attribute template
+* (DutchmanNL) add definition explanation to attribute template
 
 ### 0.0.1
 * (HGlab01) initial release
