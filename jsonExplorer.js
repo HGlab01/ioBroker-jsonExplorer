@@ -91,14 +91,71 @@ async function TraverseJson(adapter, o, parent = null, replaceName = false, repl
 
 
 /**
- * @param {object} adapter Adapter-Class
- * @param {string} stateName ID of the state
- * @param {string} name Name of the state
- * @param {string | null | boolean} value Value of the state
+ * Function to handle state creation
+ * proper object definitions
+ * rounding of values
+ * @param {object} adapter Adapter-Class (normally "this")
+ * @param objName {string} ID of the state
+ * @param name {string} Name of state (also used for stattAttrlib!)
+ * @param value {boolean | string | null} Value of the state
  */
-async function create_state(adapter, stateName, name, value, expire = 0) {
-    adapter.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
+async function stateSetCreate(adapter, objName, name, value, expire = 0) {
+    adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
     try {
+
+        /**
+         * Value rounding 1 digits
+         * @param {number} [value] - Number to round with . separator
+         */
+        function roundOneDigit(value) {
+            try {
+                let rounded = Number(value);
+                rounded = Math.round(rounded * 10) / 10;
+                adapter.log.debug(`roundCosts with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundCosts ${value}`);
+                adapter.sendSentry(error);
+                return value;
+            }
+        }
+        /**
+         * Value rounding 2 digits
+         * @param {number} [value] - Number to round with , separator
+         */
+        function roundTwoDigits(value) {
+            try {
+                let rounded;
+                rounded = Number(value);
+                rounded = Math.round(rounded * 100) / 100;
+                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundDigits ${value}`);
+                adapter.sendSentry(error);
+                return value;
+            }
+        }
+        /**
+         * Value rounding 3 digits
+         * @param {number} [value] - Number to round with , separator
+         */
+        function roundThreeDigits(value) {
+            try {
+                let rounded;
+                rounded = Number(value);
+                rounded = Math.round(rounded * 1000) / 1000;
+                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+                if (!rounded) return value;
+                return rounded;
+            } catch (error) {
+                adapter.log.error(`[roundDigits ${value}`);
+                adapter.sendSentry(error);
+                return value;
+            }
+        }
 
         // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
         const common = {};
@@ -116,21 +173,21 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         common.read = true;
         common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
-        if ((!adapter.createdStatesDetails[stateName])
-            || (adapter.createdStatesDetails[stateName]
+        if ((!adapter.createdStatesDetails[objName])
+            || (adapter.createdStatesDetails[objName]
                 && (
-                    common.name !== adapter.createdStatesDetails[stateName].name
-                    || common.name !== adapter.createdStatesDetails[stateName].name
-                    || common.type !== adapter.createdStatesDetails[stateName].type
-                    || common.role !== adapter.createdStatesDetails[stateName].role
-                    || common.read !== adapter.createdStatesDetails[stateName].read
-                    || common.unit !== adapter.createdStatesDetails[stateName].unit
-                    || common.write !== adapter.createdStatesDetails[stateName].write
+                    common.name !== adapter.createdStatesDetails[objName].name
+                    || common.name !== adapter.createdStatesDetails[objName].name
+                    || common.type !== adapter.createdStatesDetails[objName].type
+                    || common.role !== adapter.createdStatesDetails[objName].role
+                    || common.read !== adapter.createdStatesDetails[objName].read
+                    || common.unit !== adapter.createdStatesDetails[objName].unit
+                    || common.write !== adapter.createdStatesDetails[objName].write
                 )
             )) {
 
             // console.log(`An attribute has changed : ${state}`);
-            await adapter.extendObjectAsync(stateName, {
+            await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common
             });
@@ -140,11 +197,26 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         }
 
         // Store current object definition to memory
-        adapter.createdStatesDetails[stateName] = common;
+        adapter.createdStatesDetails[objName] = common;
+
+        // Check if value should be rounded, active switch
+        const roundingOneDigit = stateAttr[name] !== undefined ? stateAttr[name].round_1 || false : false;
+        const roundingTwoDigits = stateAttr[name] !== undefined ? stateAttr[name].round_2 || false : false;
+        const roundingThreeDigits = stateAttr[name] !== undefined ? stateAttr[name].round_3 || false : false;
 
         // Set value to state
         if (value !== null || value !== undefined) {
-            await adapter.setStateAsync(stateName, {
+            // Check if value should be rounded, if yes execute
+            if (typeof value == 'number' || typeof value == 'string') {
+                if (roundingOneDigit) {
+                    value = roundOneDigit(value);
+                } else if (roundingTwoDigits) {
+                    value = roundTwoDigits(value);
+                } else if (roundingThreeDigits) {
+                    value = roundThreeDigits(value);
+                }
+            }
+            await adapter.setStateAsync(objName, {
                 val: value,
                 ack: true,
                 expire: expire
@@ -154,24 +226,24 @@ async function create_state(adapter, stateName, name, value, expire = 0) {
         // Timer to set online state to FALSE when not updated
         if (name === 'online') {
             // Clear running timer
-            if (stateExpire[stateName]) {
-                clearTimeout(stateExpire[stateName]);
-                stateExpire[stateName] = null;
+            if (stateExpire[objName]) {
+                clearTimeout(stateExpire[objName]);
+                stateExpire[objName] = null;
             }
 
             // timer
-            stateExpire[stateName] = setTimeout(async () => {
-                await adapter.setStateAsync(stateName, {
+            stateExpire[objName] = setTimeout(async () => {
+                await adapter.setStateAsync(objName, {
                     val: false,
                     ack: true,
                 });
-                adapter.log.info('Online state expired for ' + stateName);
+                adapter.log.info('Online state expired for ' + objName);
             }, adapter.executioninterval * 1000 + 5000);
             adapter.log.debug('Expire time set for state : ' + name + ' with time in seconds : ' + (adapter.executioninterval + 5));
         }
 
         // Subscribe on state changes if writable
-        common.write && adapter.subscribeStates(stateName);
+        common.write && adapter.subscribeStates(objName);
 
     } catch (error) {
         adapter.log.error('Create state error = ' + error);
@@ -243,7 +315,7 @@ async function checkExpire(adapter, searchpattern) {
 
 module.exports = {
     TraverseJson: TraverseJson,
-    create_state: create_state,
+    stateSetCreate: stateSetCreate,
     checkExpire: checkExpire,
     init: init,
     setLastStartTime: setLastStartTime
