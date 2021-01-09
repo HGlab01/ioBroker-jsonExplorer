@@ -210,7 +210,7 @@ async function stateSetCreate(adapter, stateName, name, value, expire = 0) {
             // Check if value should be rounded, if yes execute
             if (typeof value == 'number' || typeof value == 'string') {
                 if (roundingOneDigit) {
-                    value = rondOneDigit(value);
+                    value = roundOneDigit(value);
                 } else if (roundingTwoDigits) {
                     value = roundTwoDigits(value);
                 } else if (roundingThreeDigits) {
