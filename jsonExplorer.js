@@ -1,7 +1,24 @@
-/*********************************************************************/
-/* function create_state belongs to https://github.com/DutchmanNL    */
-/* Thanks for sharing!                                               */
-/*********************************************************************/
+/**
+ * Defines supported methods for element modify which can be used in stateAttr.js
+ * In addition: 'cumstom: YOUR CALCULATION' allows any calculation, where 'value' is the input parameter.
+ * Example: 
+ * modify: 'custom: value + 1' --> add 1 to the json-input
+ * 
+ * Examples for usage of existing methods:
+ * modify: [method.msinkmh, method.roundOneDigit] --> defined as array --> converts from m/s to km/h first, than it is rounded by 2 digits
+ * modify: method.upperCase --> no array needed as there is only one action; this uppercases the value
+ */
+const method = {};
+method.roundOneDigit = 'roundOneDigit';
+method.roundTwoDigit = 'roundTwoDigit';
+method.roundThreeDigit = 'roundThreeDigit';
+method.upperCase = 'upperCase';
+method.lowerCase = 'lowerCase';
+method.ucFirst = 'ucFirst';
+method.msinkmh = 'm/s in km/h';
+method.kmhinms = 'km/h in m/s';
+/************************************************************************/
+
 
 const disableSentry = true; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
@@ -91,6 +108,52 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
     }
 }
 
+function modify(method, value) {
+    adapter.log.info(`Function modify with method "${method}" and value "${value}"`);
+    let result = null;
+    try {
+        if (method.substring(0, 7) == 'custom:') {
+            adapter.log.info(method.substr(7).trim());
+            value = eval(method.substr(7).trim());
+        } else {
+            switch (method) {
+                case 'roundOneDigit':
+                    result = Math.round(parseFloat(value) * 10) / 10;
+                    break;
+                case 'roundTwoDigit':
+                    result = Math.round(parseFloat(value) * 100) / 100;
+                    break;
+                case 'roundThreeDigit':
+                    result = Math.round(parseFloat(value) * 1000) / 1000;
+                    break;
+                case 'upperCase':
+                    if (typeof value == 'string') result = value.toUpperCase();
+                    break;
+                case 'lowerCase':
+                    if (typeof value == 'string') result = value.toLowerCase();
+                    break;
+                case 'ucFirst':
+                    if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
+                    break;
+                case 'm/s in km/h':
+                    result = parseFloat(value) * 3.6;
+                    break;
+                case 'km/h in m/s':
+                    result = parseFloat(value) / 3.6;
+                    break;
+                default:
+                    result = value;
+            }
+        }
+        if (!result) return value;
+        return result;
+    } catch (error) {
+        adapter.log.error(`Error in function modify for method ${method} and value ${value}.`);
+        adapter.sendSentry(error);
+        return value;
+    }
+}
+
 
 /**
  * Function to handle state creation
@@ -104,62 +167,9 @@ async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
     try {
 
-        /**
-         * Value rounding 1 digits
-         * @param {number} [value] - Number to round with . separator
-         */
-        function roundOneDigit(value) {
-            try {
-                let rounded = Number(value);
-                rounded = Math.round(rounded * 10) / 10;
-                adapter.log.debug(`roundCosts with ${value} rounded ${rounded}`);
-                if (!rounded) return value;
-                return rounded;
-            } catch (error) {
-                adapter.log.error(`[roundCosts ${value}`);
-                adapter.sendSentry(error);
-                return value;
-            }
-        }
-        /**
-         * Value rounding 2 digits
-         * @param {number} [value] - Number to round with , separator
-         */
-        function roundTwoDigits(value) {
-            try {
-                let rounded;
-                rounded = Number(value);
-                rounded = Math.round(rounded * 100) / 100;
-                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
-                if (!rounded) return value;
-                return rounded;
-            } catch (error) {
-                adapter.log.error(`[roundDigits ${value}`);
-                adapter.sendSentry(error);
-                return value;
-            }
-        }
-        /**
-         * Value rounding 3 digits
-         * @param {number} [value] - Number to round with , separator
-         */
-        function roundThreeDigits(value) {
-            try {
-                let rounded;
-                rounded = Number(value);
-                rounded = Math.round(rounded * 1000) / 1000;
-                adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
-                if (!rounded) return value;
-                return rounded;
-            } catch (error) {
-                adapter.log.error(`[roundDigits ${value}`);
-                adapter.sendSentry(error);
-                return value;
-            }
-        }
-
         // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
         const common = {};
+        common.modify = {};
         if (!stateAttr[name]) {
             const warnMessage = `State attribute definition missing for '${name}'`;
             if (warnMessages[name] !== warnMessage) {
@@ -174,6 +184,9 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.read = true;
         common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
+        common.modify = stateAttr[name].modify !== undefined ? stateAttr[name].modify || '' : '';
+        adapter.log.debug(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
+
         if ((!adapter.createdStatesDetails[objName])
             || (adapter.createdStatesDetails[objName]
                 && (
@@ -200,23 +213,22 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         // Store current object definition to memory
         adapter.createdStatesDetails[objName] = common;
 
-        // Check if value should be rounded, active switch
-        const roundingOneDigit = stateAttr[name] !== undefined ? stateAttr[name].round_1 || false : false;
-        const roundingTwoDigits = stateAttr[name] !== undefined ? stateAttr[name].round_2 || false : false;
-        const roundingThreeDigits = stateAttr[name] !== undefined ? stateAttr[name].round_3 || false : false;
-
         // Set value to state
         if (value !== null || value !== undefined) {
-            // Check if value should be rounded, if yes execute
-            if (typeof value == 'number' || typeof value == 'string') {
-                if (roundingOneDigit) {
-                    value = roundOneDigit(value);
-                } else if (roundingTwoDigits) {
-                    value = roundTwoDigits(value);
-                } else if (roundingThreeDigits) {
-                    value = roundThreeDigits(value);
+            //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
+            if (common.modify != '' && typeof common.modify == 'string') {
+                adapter.log.info(`Value "${value}" before function modify with method "${common.modify}"`);
+                value = modify(common.modify, value);
+                adapter.log.info(`Value "${value}" after function modify with method "${common.modify}"`);
+            } else if (typeof common.modify == 'object') {
+                for (let i of common.modify) {
+                    //adapter.log.info(i);
+                    adapter.log.info(`Value "${value}" before function modify with method "${i}"`);
+                    value = modify(i, value);
+                    adapter.log.info(`Value "${value}" after function modify with method "${i}"`);
                 }
             }
+
             await adapter.setStateAsync(objName, {
                 val: value,
                 ack: true,

@@ -12,11 +12,31 @@
 		read: true,							// {default: true} Name defition for object
 		write: true,						// {default: false} Name defition for object
 		role: 'indicator.info',				// {default: state} Role as defined by https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md
-		round_1: true,						// {default: NotUsed} Executed rounding function to 1 digit
-		round_2: true,						// {default: NotUsed} Executed rounding function to 2 digit
-		round_3: true,						// {default: NotUsed} Executed rounding function to 3 digit
+		modify: ''							// {default: ''} see below
 	},
  */
+
+/**
+ * Defines supported methods for element modify which can be used in stateAttr.js
+ * In addition: 'cumstom: YOUR CALCULATION' allows any calculation, where 'value' is the input parameter.
+ * Example: 
+ * modify: 'custom: value + 1' --> add 1 to the json-input
+ * 
+ * Examples for usage of existing methods:
+ * modify: [method.msinkmh, method.roundOneDigit] --> defined as array --> converts from m/s to km/h first, than it is rounded by 2 digits
+ * modify: method.upperCase --> no array needed as there is only one action; this uppercases the value
+ */
+const method = {};
+method.roundOneDigit = 'roundOneDigit';
+method.roundTwoDigit = 'roundTwoDigit';
+method.roundThreeDigit = 'roundThreeDigit';
+method.upperCase = 'upperCase';
+method.lowerCase = 'lowerCase';
+method.ucFirst = 'ucFirst';
+method.msinkmh = 'm/s in km/h';
+method.kmhinms = 'km/h in m/s';
+/************************************************************************/
+
 
 /**
  * state attribute definitions
@@ -27,16 +47,27 @@ const stateAttrb = {
 		type: 'number|string|array|boolean...',
 		read: true|false,
 		write: true|false,
-		role: '',  //https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md
-		unit: 's|°|%...'
+		role: 'value',
+		unit: 's|°|%...',
+		modify: [method.msinkmh, method.roundTwoDigit]
 	},
 	'NAMEOFTHESTATE2': {
 		name: 'READABLE NAME/DESCRIPTION',
 		type: 'number|string|array|boolean...',
 		read: true|false,
 		write: true|false,
-		role: '',  //https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md
-		unit: 's|°|%...'	}
+		role: 'vale',
+		unit: 's|°|%...',
+		modify: 'customer: (value+1)*2'
+	},
+	'NAMEOFTHESTATE3': {
+		name: 'READABLE NAME/DESCRIPTION',
+		type: 'number|string|array|boolean...',
+		read: true|false,
+		write: true|false,
+		role: 'vale',
+		unit: 's|°|%...'
+	}
 };
 
 module.exports = stateAttrb;
