@@ -21,7 +21,5 @@
     "url": "https://github.com/HGlab01/ioBroker-jsonExplorer/issues"
   },
   "homepage": "https://github.com/HGlab01/ioBroker-jsonExplorer#readme",
-  "dependencies": {
-    "david": "^12.0.0"
-  }
+  "dependencies": {}
 }
