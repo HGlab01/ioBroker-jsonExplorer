@@ -1,9 +1,6 @@
 # ioBroker JsonExplorer
 
-![Logo](admin/followthesun.png)
-# ioBroker.followthesun
-
-[![NPM version](http://img.shields.io/npm/v/iobroker-jsonexplorer.svg)](https://www.npmjs.com/package/iobroker.followthesun)
+[![NPM version](http://img.shields.io/npm/v/iobroker-jsonexplorer.svg)](https://www.npmjs.com/package/iobroker-jsonexplorer)
 ![Number of Installations (stable)](http://iobroker.live/badges/followthesun-stable.svg)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.followthesun.svg)](https://www.npmjs.com/package/iobroker.followthesun)
 ![Number of Installations (latest)](http://iobroker.live/badges/followthesun-installed.svg)
