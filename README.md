@@ -37,7 +37,11 @@ Placeholder for release script, not visible in web/admin interface
 -->
 
 ### __WORK IN PROGRESS__
+* 
+
+### 0.0.0-4
 * (HGlab01) rename template
+* (HGlab01) support generic modify element
 
 ### 0.0.0-2
 * (DutchmanNL) implement capability to round values 
