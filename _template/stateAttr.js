@@ -23,9 +23,9 @@
  * modify: 'custom: value + 1' --> add 1 to the json-input
  * 
  *  * supported methods (as string): 
- *  - round(number)
- * 	- multiply(number)
- *  - divide(number)
+ *  - round(count_digits as {number})  //integer only
+ * 	- multiply(factor as {number})
+ *  - divide(factor as {number})
  *  - upperCase
  *  - lowerCase
  *  - ucFirst

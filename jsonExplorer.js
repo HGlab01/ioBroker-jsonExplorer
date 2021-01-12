@@ -90,27 +90,28 @@ function modify(method, value) {
     adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
     try {
-        if (method.startsWith('custom:')) {
-            value = eval(method.replace('custom:', ''));
-        } else if (method.startsWith('multiply(')) {
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));
+        if (method.match(/^custom:/gi) != null) {                               //check if start with "custom:"
+            value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
+        } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = value * inBracket;
-        } else if (method.startsWith('divide(')) {
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));
+        } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = value / inBracket;
-        } else if (method.startsWith('round(')) {
-            let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));
+        } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
+            let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
             value = Math.round(value * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
         }
         else {
-            switch (method) {
-                case 'upperCase':
+            let methodUC = method.toUpperCase();
+            switch (methodUC) {
+                case 'UPPERCASE':
                     if (typeof value == 'string') result = value.toUpperCase();
                     break;
-                case 'lowerCase':
+                case 'LOWERCASE':
                     if (typeof value == 'string') result = value.toLowerCase();
                     break;
-                case 'ucFirst':
+                case 'UCFIRST':
                     if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
                     break;
                 default:
