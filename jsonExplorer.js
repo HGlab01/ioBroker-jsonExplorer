@@ -83,7 +83,7 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
                         },
                         'native': {},
                     });
-                    TraverseJson(o[i], id, replaceName, replaceID);
+                    TraverseJson(o[i], id, replaceName, replaceID, state_expire);
                 } else {
                     console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.debug('State ' + id + ' received with empty array, ignore channel creation');
@@ -109,11 +109,11 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
 }
 
 function modify(method, value) {
-    adapter.log.info(`Function modify with method "${method}" and value "${value}"`);
+    adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
     try {
         if (method.substring(0, 7) == 'custom:') {
-            adapter.log.info(method.substr(7).trim());
+            adapter.log.debug(method.substr(7).trim());
             value = eval(method.substr(7).trim());
         } else {
             switch (method) {
@@ -217,15 +217,14 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         if (value !== null || value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
-                adapter.log.info(`Value "${value}" before function modify with method "${common.modify}"`);
+                adapter.log.debug(`Value "${value}" before function modify with method "${common.modify}"`);
                 value = modify(common.modify, value);
-                adapter.log.info(`Value "${value}" after function modify with method "${common.modify}"`);
+                adapter.log.debug(`Value "${value}" after function modify with method "${common.modify}"`);
             } else if (typeof common.modify == 'object') {
                 for (let i of common.modify) {
-                    //adapter.log.info(i);
-                    adapter.log.info(`Value "${value}" before function modify with method "${i}"`);
+                    adapter.log.debug(`Value "${value}" before function modify with method "${i}"`);
                     value = modify(i, value);
-                    adapter.log.info(`Value "${value}" after function modify with method "${i}"`);
+                    adapter.log.debug(`Value "${value}" after function modify with method "${i}"`);
                 }
             }
 
