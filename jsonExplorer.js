@@ -1,25 +1,3 @@
-/**
- * Defines supported methods for element modify which can be used in stateAttr.js
- * In addition: 'cumstom: YOUR CALCULATION' allows any calculation, where 'value' is the input parameter.
- * Example: 
- * modify: 'custom: value + 1' --> add 1 to the json-input
- * 
- * Examples for usage of existing methods:
- * modify: [method.msinkmh, method.roundOneDigit] --> defined as array --> converts from m/s to km/h first, than it is rounded by 2 digits
- * modify: method.upperCase --> no array needed as there is only one action; this uppercases the value
- */
-const method = {};
-method.roundOneDigit = 'roundOneDigit';
-method.roundTwoDigit = 'roundTwoDigit';
-method.roundThreeDigit = 'roundThreeDigit';
-method.upperCase = 'upperCase';
-method.lowerCase = 'lowerCase';
-method.ucFirst = 'ucFirst';
-method.msinkmh = 'm/s in km/h';
-method.kmhinms = 'km/h in m/s';
-/************************************************************************/
-
-
 const disableSentry = true; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
@@ -83,7 +61,7 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
                         },
                         'native': {},
                     });
-                    TraverseJson(o[i], id, replaceName, replaceID);
+                    TraverseJson(o[i], id, replaceName, replaceID, state_expire);
                 } else {
                     console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.debug('State ' + id + ' received with empty array, ignore channel creation');
@@ -109,37 +87,38 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
 }
 
 function modify(method, value) {
-    adapter.log.info(`Function modify with method "${method}" and value "${value}"`);
+    adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
     try {
-        if (method.substring(0, 7) == 'custom:') {
-            adapter.log.info(method.substr(7).trim());
-            value = eval(method.substr(7).trim());
-        } else {
-            switch (method) {
-                case 'roundOneDigit':
-                    result = Math.round(parseFloat(value) * 10) / 10;
-                    break;
-                case 'roundTwoDigit':
-                    result = Math.round(parseFloat(value) * 100) / 100;
-                    break;
-                case 'roundThreeDigit':
-                    result = Math.round(parseFloat(value) * 1000) / 1000;
-                    break;
-                case 'upperCase':
+        if (method.match(/^custom:/gi) != null) {                               //check if starts with "custom:"
+            value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
+        } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = value * inBracket;
+        } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = value / inBracket;
+        } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
+            let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
+            value = Math.round(value * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
+        } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = parseFloat(value) + inBracket;
+        } else if (method.match(/^substract\(/gi) != null) {                    //check if starts with "substract("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = parseFloat(value) - inBracket;
+        }
+        else {
+            let methodUC = method.toUpperCase();
+            switch (methodUC) {
+                case 'UPPERCASE':
                     if (typeof value == 'string') result = value.toUpperCase();
                     break;
-                case 'lowerCase':
+                case 'LOWERCASE':
                     if (typeof value == 'string') result = value.toLowerCase();
                     break;
-                case 'ucFirst':
+                case 'UCFIRST':
                     if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
-                    break;
-                case 'm/s in km/h':
-                    result = parseFloat(value) * 3.6;
-                    break;
-                case 'km/h in m/s':
-                    result = parseFloat(value) / 3.6;
                     break;
                 default:
                     result = value;
@@ -161,7 +140,8 @@ function modify(method, value) {
  * rounding of values
  * @param objName {string} ID of the state
  * @param name {string} Name of state (also used for stattAttrlib!)
- * @param value {boolean | string | null} Value of the state
+ * @param value {boolean | string | number | null} Value of the state
+ * @param expire {number} expire time in seconds
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
@@ -222,7 +202,6 @@ async function stateSetCreate(objName, name, value, expire = 0) {
                 adapter.log.info(`Value "${value}" after function modify with method "${common.modify}"`);
             } else if (typeof common.modify == 'object') {
                 for (let i of common.modify) {
-                    //adapter.log.info(i);
                     adapter.log.info(`Value "${value}" before function modify with method "${i}"`);
                     value = modify(i, value);
                     adapter.log.info(`Value "${value}" after function modify with method "${i}"`);

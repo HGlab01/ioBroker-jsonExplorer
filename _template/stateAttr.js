@@ -1,7 +1,7 @@
 /**
  * ************************************************************
- * *************** state attribute template 0.2 ***************
- * *** state attribute template 0.2 by HGlab01 & DutchmanNL ***
+ * *************** state attribute template  ******************
+ * *** state attribute template by HGlab01 & DutchmanNL ***
  * ************************************************************
  * Object definitions can contain these elements to be called by stateSetCreate function, if not set default values are used
  'Cancel current printing': {			// id of state (name) submitted by stateSetCreate function
@@ -22,21 +22,21 @@
  * Example: 
  * modify: 'custom: value + 1' --> add 1 to the json-input
  * 
- * Examples for usage of existing methods:
- * modify: [method.msinkmh, method.roundOneDigit] --> defined as array --> converts from m/s to km/h first, than it is rounded by 2 digits
- * modify: method.upperCase --> no array needed as there is only one action; this uppercases the value
+ *  * supported methods (as string): 
+ *  - round(number_of_digits as {number})  //integer only
+ * 	- multiply(factor as {number})
+ *  - divide(factor as {number})
+ *  - add(number {number})
+ *  - substract(number {number})
+ *  - upperCase
+ *  - lowerCase
+ *  - ucFirst
+ * 
+ * Examples for usage of embeded methods:
+ * modify: ['multiply(3.6)', 'round(2)'] --> defined as array --> multiplied by 3.6 and then the result is rounded by 2 digits
+ * modify: 'upperCase' --> no array needed as there is only one action; this uppercases the string
+ * 
  */
-const method = {};
-method.roundOneDigit = 'roundOneDigit';
-method.roundTwoDigit = 'roundTwoDigit';
-method.roundThreeDigit = 'roundThreeDigit';
-method.upperCase = 'upperCase';
-method.lowerCase = 'lowerCase';
-method.ucFirst = 'ucFirst';
-method.msinkmh = 'm/s in km/h';
-method.kmhinms = 'km/h in m/s';
-/************************************************************************/
-
 
 /**
  * state attribute definitions
@@ -49,7 +49,7 @@ const stateAttrb = {
 		write: true|false,
 		role: 'value',
 		unit: 's|°|%...',
-		modify: [method.msinkmh, method.roundTwoDigit]
+		modify: ['multiply(3.6)', 'round(2)']
 	},
 	'NAMEOFTHESTATE2': {
 		name: 'READABLE NAME/DESCRIPTION',
@@ -58,9 +58,18 @@ const stateAttrb = {
 		write: true|false,
 		role: 'vale',
 		unit: 's|°|%...',
-		modify: 'customer: (value+1)*2'
+		modify: 'customer: (value+1)*2+value/2'
 	},
 	'NAMEOFTHESTATE3': {
+		name: 'READABLE NAME/DESCRIPTION',
+		type: 'number|string|array|boolean...',
+		read: true|false,
+		write: true|false,
+		role: 'vale',
+		unit: 's|°|%...',
+		modify: 'upperCase'
+	},
+	'NAMEOFTHESTATE4': {
 		name: 'READABLE NAME/DESCRIPTION',
 		type: 'number|string|array|boolean...',
 		read: true|false,
