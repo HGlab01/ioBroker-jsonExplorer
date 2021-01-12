@@ -90,7 +90,7 @@ function modify(method, value) {
     adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
     try {
-        if (method.match(/^custom:/gi) != null) {                               //check if start with "custom:"
+        if (method.match(/^custom:/gi) != null) {                               //check if starts with "custom:"
             value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
         } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
@@ -101,6 +101,12 @@ function modify(method, value) {
         } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
             let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
             value = Math.round(value * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
+        } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = parseFloat(value) + inBracket;
+        } else if (method.match(/^substract\(/gi) != null) {                    //check if starts with "substract("
+            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            value = parseFloat(value) - inBracket;
         }
         else {
             let methodUC = method.toUpperCase();
