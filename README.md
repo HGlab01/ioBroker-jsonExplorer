@@ -9,24 +9,26 @@
 
 
 ## How to prepare
-Create file `/lib/stateAttr.js` based on template `_template/stateAttr.js`and add  
+Create file `/lib/stateAttr.js` in your adapter directory based on template `_template/stateAttr.js`and add  
 * `const JsonExplorer = require('iobroker-jsonexplorer');`
 * `const stateAttr = require(__dirname + '/lib/stateAttr.js'); // Load attribute library`  
 in section "Load your modules here"  
 
 
-Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor.  
+Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor, where "this" is your adapter class object.  
 
 ## How to use
-Call `await JsonExplorer.TraverseJson(result, parent, true, false);`  
+Call `await JsonExplorer.TraverseJson(result, parent, replaceName, replaceID);`  
 result: JSON object to be addad as states  
 parent: name of the parent state; null results in root  
-replaceName: true|false; if yes, the description of a channel will be replaced by the name of a leaf-state if available  
-replaceID: true|false; if yes, the description of a channel will be replaced by the id of a leaf-state if available  
-
+replaceName: true|false; if true, the description of a channel will be replaced by the name of a leaf-state if available (search for a state with id "name")  
+replaceID: true|false; if true, the description of a channel will be replaced by the id of a leaf-state if available (search for a state with id "name")
 
 ### Expire management (optional)
-All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonExplorer.setLastStartTime()` before calling `JsonExplorer.TraverseJson()` and `JsonExplorer.checkExpire(parent)` after caling `JsonExplorer.TraverseJson()`
+All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonExplorer.setLastStartTime()` before calling `JsonExplorer.TraverseJson()` and `JsonExplorer.checkExpire('*')` after caling `JsonExplorer.TraverseJson()`
+
+### Reference implementation
+https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ## Changelog
 
@@ -36,11 +38,12 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
-### __WORK IN PROGRESS__
-* 
+### 0.0.0-6
+* (HGlab01) bugfixes
+* (HGlab01) improve readability
 
 ### 0.0.0-5
-* (HGlab01) rework to more generic modify methods
+* (HGlab01) breaking change!!! rework to more generic modify methods
 
 ### 0.0.0-4
 * (HGlab01) rename template

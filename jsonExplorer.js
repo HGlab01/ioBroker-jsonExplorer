@@ -4,6 +4,7 @@ let adapter; //adapter-object initialized by init(); other functions do not need
 
 /**
  * @param {object} adapter Adapter-Class (normally "this")
+ * @param {object} stateAttr check README
  */
 function init(adapterOrigin, stateAttribute) {
     adapter = adapterOrigin;
@@ -12,47 +13,41 @@ function init(adapterOrigin, stateAttribute) {
 }
 
 /**
- * Sets state online to true as reference for outdated states
- */
-async function setLastStartTime() {
-    await stateSetCreate('online', 'online', true);
-}
-
-/**
  * Traeverses the json-object and provides all information for creating/updating states
- * @param {object} o Json-object to be added as states
- * @param {string | null} parent Defines the parent object in the state tree
- * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
- * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel)
+ * @param {object} jObject Json-object to be added as states
+ * @param {string | null} parent Defines the parent object in the state tree; default=root
+ * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel); default=false
+ * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel); default=false;
+ * @param {number} state_expire expire time for the current setState in seconds; default is no expire
  */
-async function TraverseJson(o, parent = null, replaceName = false, replaceID = false, state_expire = 0) {
+async function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0) {
     let id = null;
     let value = null;
     let name = null;
 
     try {
-        for (var i in o) {
+        for (var i in jObject) {
             name = i;
-            if (!!o[i] && typeof (o[i]) == 'object' && o[i] == '[object Object]') {
+            if (!!jObject[i] && typeof (jObject[i]) == 'object' && jObject[i] == '[object Object]') {
                 if (parent == null) {
                     id = i;
                     if (replaceName) {
-                        if (o[i].name) name = o[i].name;
+                        if (jObject[i].name) name = jObject[i].name;
                     }
                     if (replaceID) {
-                        if (o[i].id) id = o[i].id;
+                        if (jObject[i].id) id = jObject[i].id;
                     }
                 } else {
                     id = parent + '.' + i;
                     if (replaceName) {
-                        if (o[i].name) name = o[i].name;
+                        if (jObject[i].name) name = jObject[i].name;
                     }
                     if (replaceID) {
-                        if (o[i].id) id = parent + '.' + o[i].id;
+                        if (jObject[i].id) id = parent + '.' + jObject[i].id;
                     }
                 }
                 // Avoid channel creation for empty arrays/objects
-                if (Object.keys(o[i]).length !== 0) {
+                if (Object.keys(jObject[i]).length !== 0) {
                     console.log(`park`);
                     await adapter.setObjectAsync(id, {
                         'type': 'channel',
@@ -61,19 +56,19 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
                         },
                         'native': {},
                     });
-                    TraverseJson(o[i], id, replaceName, replaceID, state_expire);
+                    TraverseJson(jObject[i], id, replaceName, replaceID, state_expire);
                 } else {
                     console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.debug('State ' + id + ' received with empty array, ignore channel creation');
                 }
             } else {
-                value = o[i];
+                value = jObject[i];
                 if (parent == null) {
                     id = i;
                 } else {
                     id = parent + '.' + i
                 }
-                if (typeof (o[i]) == 'object') value = JSON.stringify(value);
+                if (typeof (jObject[i]) == 'object') value = JSON.stringify(value);
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.debug('create id ' + id + ' with value ' + value + ' and name ' + name);
@@ -86,6 +81,11 @@ async function TraverseJson(o, parent = null, replaceName = false, replaceID = f
     }
 }
 
+/**
+ * Analysis modify element in stateAttr.js and executes command
+ * @param {string} method defines the method to be executed (e.g. round())
+ * @param {string | number} value value to be executed 
+*/
 function modify(method, value) {
     adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
@@ -138,10 +138,10 @@ function modify(method, value) {
  * Function to handle state creation
  * proper object definitions
  * rounding of values
- * @param objName {string} ID of the state
- * @param name {string} Name of state (also used for stattAttrlib!)
- * @param value {boolean | string | number | null} Value of the state
- * @param expire {number} expire time in seconds
+ * @param {string} objName ID of the object
+ * @param {string} name Name of state (also used for stattAttrlib!)
+ * @param {boolean | string | number | null} value Value of the state
+ * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
@@ -197,14 +197,14 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         if (value !== null || value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
-                adapter.log.info(`Value "${value}" before function modify with method "${common.modify}"`);
+                adapter.log.info(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
                 value = modify(common.modify, value);
-                adapter.log.info(`Value "${value}" after function modify with method "${common.modify}"`);
+                adapter.log.info(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
             } else if (typeof common.modify == 'object') {
                 for (let i of common.modify) {
-                    adapter.log.info(`Value "${value}" before function modify with method "${i}"`);
+                    adapter.log.info(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
                     value = modify(i, value);
-                    adapter.log.info(`Value "${value}" after function modify with method "${i}"`);
+                    adapter.log.info(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
                 }
             }
 
@@ -243,6 +243,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
 }
 
 /**
+ * Handles error mesages for log and Sentry
  * @param {string} msg Error message
  */
 function sendSentry(msg) {
@@ -301,6 +302,13 @@ async function checkExpire(searchpattern) {
     } catch (error) {
         adapter.log.error(`Error in function checkExpire: ${error}`);
     }
+}
+
+/**
+ * Sets state online to true as reference for outdated states
+ */
+async function setLastStartTime() {
+    await stateSetCreate('online', 'online', true);
 }
 
 module.exports = {
