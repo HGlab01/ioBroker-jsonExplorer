@@ -19,10 +19,10 @@ Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor, where
 
 ## How to use
 Call `await JsonExplorer.TraverseJson(result, parent, replaceName, replaceID);`  
-result: JSON object to be addad as states  
+result: JSON object to be added as states  
 parent: name of the parent state; null results in root  
 replaceName: true|false; if true, the description of a channel will be replaced by the name of a leaf-state if available (search for a state with id "name")  
-replaceID: true|false; if true, the description of a channel will be replaced by the id of a leaf-state if available (search for a state with id "name")
+replaceID: true|false; if true, the description of a channel will be replaced by the id of a leaf-state if available (search for a state with id "id")
 
 ### Expire management (optional)
 All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonExplorer.setLastStartTime()` before calling `JsonExplorer.TraverseJson()` and `JsonExplorer.checkExpire('*')` after caling `JsonExplorer.TraverseJson()`
