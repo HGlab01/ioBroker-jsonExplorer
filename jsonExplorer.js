@@ -197,14 +197,14 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         if (value !== null || value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
-                adapter.log.info(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
+                adapter.log.debug(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
                 value = modify(common.modify, value);
-                adapter.log.info(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
+                adapter.log.debug(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
             } else if (typeof common.modify == 'object') {
                 for (let i of common.modify) {
-                    adapter.log.info(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
+                    adapter.log.debug(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
                     value = modify(i, value);
-                    adapter.log.info(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
+                    adapter.log.debug(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
                 }
             }
 
