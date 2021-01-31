@@ -37,6 +37,8 @@ Placeholder for release script, not visible in web/admin interface
 	### __WORK IN PROGRESS__
 	* (Developer) xxxx
 -->
+### 0.0.0-7
+* (HGlab01) adjust loglevel
 
 ### 0.0.0-6
 * (HGlab01) bugfixes
