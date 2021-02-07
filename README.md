@@ -37,6 +37,10 @@ Placeholder for release script, not visible in web/admin interface
 	### __WORK IN PROGRESS__
 	* (Developer) xxxx
 -->
+
+### 0.0.0-8 (2021-02-07)
+* (DutchmanNL) solve issue for modify value if no definition is present
+
 ### 0.0.0-7
 * (HGlab01) adjust loglevel
 
