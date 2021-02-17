@@ -216,7 +216,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         }
 
         // Timer to set online state to FALSE when not updated
-        if (name === 'online') {
+        if (name === 'online' && adapter.executioninterval != undefined) {
             // Clear running timer
             if (stateExpire[objName]) {
                 clearTimeout(stateExpire[objName]);

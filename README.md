@@ -13,6 +13,7 @@ Create file `/lib/stateAttr.js` in your adapter directory based on template `_te
 * `const JsonExplorer = require('iobroker-jsonexplorer');`
 * `const stateAttr = require(__dirname + '/lib/stateAttr.js'); // Load attribute library`  
 in section "Load your modules here"  
+Install `iobroker-jsonexplorer` by using `npm i iobroker-jsonexplorer`  
 
 
 Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor, where "this" is your adapter class object.  
@@ -37,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	### __WORK IN PROGRESS__
 	* (Developer) xxxx
 -->
+
+### 0.0.0-9 (2021-02-17)
+* (HGlab01) if executioninterval is not set, state 'online' never set to false
 
 ### 0.0.0-8 (2021-02-07)
 * (DutchmanNL) solve issue for modify value if no definition is present
