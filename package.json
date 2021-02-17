@@ -1,6 +1,6 @@
 {
   "name": "iobroker-jsonexplorer",
-  "version": "0.0.0-8",
+  "version": "0.0.0-9",
   "description": "Creates ioBroker states based on a json-object",
   "main": "jsonExplorer.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "json",
     "traverse"
   ],
-  "author": "HGab01 & Dutchmann",
+  "author": "HGlab01 & Dutchmann",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/HGlab01/ioBroker-jsonExplorer/issues"
