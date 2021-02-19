@@ -1,4 +1,4 @@
-const disableSentry = true; // Ensure to set to true during development!
+const disableSentry = false; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
