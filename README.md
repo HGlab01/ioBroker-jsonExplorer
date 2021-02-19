@@ -39,6 +39,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-10 (2021-02-19)
+* (HGlab01) activate Sentry
+
 ### 0.0.0-9 (2021-02-17)
 * (HGlab01) if executioninterval is not set, state 'online' never set to false
 
