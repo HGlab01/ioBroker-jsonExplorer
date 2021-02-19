@@ -77,7 +77,9 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
             }
         }
     } catch (error) {
-        adapter.log.error(`Error in function TraverseJson: ${error}`);
+        error = `Error in function TraverseJson(): ${error}`;
+        adapter.log.error(error);
+        sendSentry(error);
     }
 }
 
@@ -127,7 +129,8 @@ function modify(method, value) {
         if (!result) return value;
         return result;
     } catch (error) {
-        adapter.log.error(`Error in function modify for method ${method} and value ${value}.`);
+        error = `Error in function modify for method ${method} and value ${value}: ${error}`;
+        adapter.log.error(error);
         adapter.sendSentry(error);
         return value;
     }
@@ -238,7 +241,8 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.write && adapter.subscribeStates(objName);
 
     } catch (error) {
-        adapter.log.error('Create state error = ' + error);
+        error = `Error in function stateSetCreate(): ${error}`;
+        adapter.log.error(error);
     }
 }
 
@@ -261,7 +265,7 @@ function sendSentry(msg) {
             console.error(`Sentry disabled, error catched : ${msg}`);
         }
     } catch (error) {
-        adapter.log.error(`Error in function sendSentry: ${error}`);
+        adapter.log.error(`Error in function sendSentry(): ${error}`);
     }
 }
 
@@ -300,7 +304,9 @@ async function checkExpire(searchpattern) {
             }
         }
     } catch (error) {
-        adapter.log.error(`Error in function checkExpire: ${error}`);
+        error = `Error in function checkExpire(): ${error}`;
+        adapter.log.error(error);
+        sendSentry(error);
     }
 }
 
