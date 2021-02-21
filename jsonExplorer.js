@@ -1,4 +1,3 @@
-const disableSentry = false; // Ensure to set to true during development!
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
@@ -48,7 +47,6 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                 }
                 // Avoid channel creation for empty arrays/objects
                 if (Object.keys(jObject[i]).length !== 0) {
-                    console.log(`park`);
                     await adapter.setObjectAsync(id, {
                         'type': 'channel',
                         'common': {
@@ -252,17 +250,15 @@ async function stateSetCreate(objName, name, value, expire = 0) {
  */
 function sendSentry(msg) {
     try {
-        if (!disableSentry) {
-            adapter.log.info(`[Error catched and send to Sentry, thank you collaborating!] error: ${msg}`);
-            if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
-                const sentryInstance = adapter.getPluginInstance('sentry');
-                if (sentryInstance) {
-                    sentryInstance.getSentryObject().captureException(msg);
-                }
+        if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
+            const sentryInstance = adapter.getPluginInstance('sentry');
+            if (sentryInstance) {
+                sentryInstance.getSentryObject().captureException(msg);
+                adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${msg}`);
+            } else {
+                adapter.log.warn(`Sentry disabled, error catched : ${msg}`);
+                console.error(`Sentry disabled, error catched : ${msg}`);
             }
-        } else {
-            adapter.log.warn(`Sentry disabled, error catched : ${msg}`);
-            console.error(`Sentry disabled, error catched : ${msg}`);
         }
     } catch (error) {
         adapter.log.error(`Error in function sendSentry(): ${error}`);

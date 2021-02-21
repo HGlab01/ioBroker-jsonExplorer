@@ -39,6 +39,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-11 (2021-02-21)
+* (HGlab01) improve Sentry handling
+
 ### 0.0.0-10 (2021-02-19)
 * (HGlab01) activate Sentry
 
@@ -73,7 +76,7 @@ Placeholder for release script, not visible in web/admin interface
 ## License
 MIT License
 
-Copyright (c) 2021 HGlab01 & DutchmanNL <rdrozda@hotmail.com>
+Copyright (c) 2021 HGlab01 & DutchmanNL
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
