@@ -32,12 +32,15 @@ All states can be monitored and set to NULL if it is not updated in the last run
 https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ## Changelog
-
 <!-- 
 Placeholder for release script, not visible in web/admin interface
 	### __WORK IN PROGRESS__
 	* (Developer) xxxx
 -->
+
+### 0.0.0-12 (2021-02-22)
+* (HGlab01) manage device/channel/state properly
+* (HGlab01) log level from debug to silly
 
 ### 0.0.0-11 (2021-02-21)
 * (HGlab01) improve Sentry handling
