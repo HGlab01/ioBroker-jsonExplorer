@@ -56,8 +56,8 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                     });
                     TraverseJson(jObject[i], id, replaceName, replaceID, state_expire);
                 } else {
-                    console.log('State ' + id + ' received with empty array, ignore channel creation');
-                    adapter.log.debug('State ' + id + ' received with empty array, ignore channel creation');
+                    //console.log('State ' + id + ' received with empty array, ignore channel creation');
+                    adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
                 }
             } else {
                 value = jObject[i];
@@ -69,7 +69,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                 if (typeof (jObject[i]) == 'object') value = JSON.stringify(value);
                 //avoid state creation if empty
                 if (value != '[]') {
-                    adapter.log.debug('create id ' + id + ' with value ' + value + ' and name ' + name);
+                    adapter.log.silly('create id ' + id + ' with value ' + value + ' and name ' + name);
                     stateSetCreate(id, name, value, state_expire);
                 }
             }
@@ -87,7 +87,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
  * @param {string | number} value value to be executed 
 */
 function modify(method, value) {
-    adapter.log.debug(`Function modify with method "${method}" and value "${value}"`);
+    adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
     let result = null;
     try {
         if (method.match(/^custom:/gi) != null) {                               //check if starts with "custom:"
@@ -145,7 +145,7 @@ function modify(method, value) {
  * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
-    adapter.log.debug('Create_state called for : ' + objName + ' with value : ' + value);
+    adapter.log.silly('Create_state called for : ' + objName + ' with value : ' + value);
     try {
 
         // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
@@ -166,7 +166,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
         common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
-        adapter.log.debug(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
+        adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
         if ((!adapter.createdStatesDetails[objName])
             || (adapter.createdStatesDetails[objName]
@@ -198,14 +198,14 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         if (value !== null || value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
-                adapter.log.debug(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
+                adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
                 value = modify(common.modify, value);
-                adapter.log.debug(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
+                adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
             } else if (typeof common.modify == 'object') {
                 for (let i of common.modify) {
-                    adapter.log.debug(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
+                    adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
                     value = modify(i, value);
-                    adapter.log.debug(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
+                    adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
                 }
             }
 
@@ -232,7 +232,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
                 });
                 adapter.log.info('Online state expired for ' + objName);
             }, adapter.executioninterval * 1000 + 5000);
-            adapter.log.debug('Expire time set for state : ' + name + ' with time in seconds : ' + (adapter.executioninterval + 5));
+            adapter.log.silly('Expire time set for state : ' + name + ' with time in seconds : ' + (adapter.executioninterval + 5));
         }
 
         // Subscribe on state changes if writable
@@ -288,14 +288,14 @@ async function checkExpire(searchpattern) {
         let states = await adapter.getStatesAsync(searchpattern);
         for (let idS in states) {
             state = await adapter.getStateAsync(idS);
-            adapter.log.debug(idS + ': ' + state);
+            adapter.log.silly(idS + ': ' + state);
             if (state && state.val != null) {
                 let stateTs = state.ts;
                 let dif = onlineTs - stateTs;
-                adapter.log.debug(`${idS}: ${stateTs} | ${onlineTs} | ${dif}`);
+                adapter.log.silly(`${idS}: ${stateTs} | ${onlineTs} | ${dif}`);
                 if ((onlineTs - stateTs) > 0) {
                     await adapter.setStateAsync(idS, null, true);
-                    adapter.log.debug(`Set state ${idS} to null`);
+                    adapter.log.silly(`Set state ${idS} to null`);
                 }
             }
         }
