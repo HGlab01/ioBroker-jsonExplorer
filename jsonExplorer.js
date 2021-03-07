@@ -334,6 +334,10 @@ async function setLastStartTime() {
     await stateSetCreate('online', 'online', true);
 }
 
+/**
+ * Deletes device + channels + states
+ * @param {string} devicename devicename (not the whole path) to be deleted
+ */
 async function deleteEverything(devicename) {
     await adapter.deleteDeviceAsync(devicename);
     let states = await adapter.getStatesAsync(`${devicename}.*`);
@@ -348,5 +352,5 @@ module.exports = {
     checkExpire: checkExpire,
     init: init,
     setLastStartTime: setLastStartTime,
-    deleteEverything : deleteEverything
+    deleteEverything: deleteEverything
 };
