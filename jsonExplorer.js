@@ -334,10 +334,19 @@ async function setLastStartTime() {
     await stateSetCreate('online', 'online', true);
 }
 
+async function deleteEverything(devicename) {
+    await adapter.deleteDeviceAsync(devicename);
+    let states = await adapter.getStatesAsync(`${devicename}.*`);
+    for (const idS in states) {
+        await adapter.delObjectAsync(idS);
+    }
+}
+
 module.exports = {
     TraverseJson: TraverseJson,
     stateSetCreate: stateSetCreate,
     checkExpire: checkExpire,
     init: init,
-    setLastStartTime: setLastStartTime
+    setLastStartTime: setLastStartTime,
+    deleteEverything : deleteEverything
 };

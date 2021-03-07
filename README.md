@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-13 (2021-03-27)
+* (HGlab01) add function deleteEverything()
+
 ### 0.0.0-12 (2021-02-22)
 * (HGlab01) manage device/channel/state properly
 * (HGlab01) log level from debug to silly
