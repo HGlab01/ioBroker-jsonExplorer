@@ -115,13 +115,13 @@ function modify(method, value) {
             value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
         } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = value * inBracket;
+            value = parseFloat(value) * inBracket;
         } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = value / inBracket;
+            value = parseFloat(value) / inBracket;
         } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
             let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
-            value = Math.round(value * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
+            value = Math.round(parseFloat(value) * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
         } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) + inBracket;
