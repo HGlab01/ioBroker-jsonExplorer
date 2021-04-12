@@ -18,17 +18,20 @@ function init(adapterOrigin, stateAttribute) {
  * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel); default=false
  * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel); default=false;
  * @param {number} state_expire expire time for the current setState in seconds; default is no expire
- * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device&channel
+ * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device & channel
  */
 async function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
     let id = null;
     let value = null;
-    let name = null;
+    let name = '';
     if (parent != null && level == 0) {
+        if (replaceName) {
+            name = jObject.name ? jObject.name : '';
+        }
         await adapter.setObjectAsync(parent, {
             'type': 'device',
             'common': {
-                'name': parent,
+                'name': name,
             },
             'native': {},
         });
@@ -77,7 +80,6 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                     }
                     TraverseJson(jObject[i], id, replaceName, replaceID, state_expire, level + 1);
                 } else {
-                    //console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
                 }
             } else {
@@ -115,13 +117,13 @@ function modify(method, value) {
             value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
         } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = value * inBracket;
+            value = parseFloat(value) * inBracket;
         } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = value / inBracket;
+            value = parseFloat(value) / inBracket;
         } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
             let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
-            value = Math.round(value * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
+            value = Math.round(parseFloat(value) * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
         } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
             let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) + inBracket;
@@ -334,6 +336,10 @@ async function setLastStartTime() {
     await stateSetCreate('online', 'online', true);
 }
 
+/**
+ * Deletes device + channels + states
+ * @param {string} devicename devicename (not the whole path) to be deleted
+ */
 async function deleteEverything(devicename) {
     await adapter.deleteDeviceAsync(devicename);
     let states = await adapter.getStatesAsync(`${devicename}.*`);
@@ -348,5 +354,5 @@ module.exports = {
     checkExpire: checkExpire,
     init: init,
     setLastStartTime: setLastStartTime,
-    deleteEverything : deleteEverything
+    deleteEverything: deleteEverything
 };
