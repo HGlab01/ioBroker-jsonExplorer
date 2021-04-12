@@ -18,17 +18,20 @@ function init(adapterOrigin, stateAttribute) {
  * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel); default=false
  * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel); default=false;
  * @param {number} state_expire expire time for the current setState in seconds; default is no expire
- * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device&channel
+ * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device & channel
  */
 async function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
     let id = null;
     let value = null;
-    let name = null;
+    let name = '';
     if (parent != null && level == 0) {
+        if (replaceName) {
+            name = jObject.name ? jObject.name : '';
+        }
         await adapter.setObjectAsync(parent, {
             'type': 'device',
             'common': {
-                'name': parent,
+                'name': name,
             },
             'native': {},
         });
@@ -77,7 +80,6 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                     }
                     TraverseJson(jObject[i], id, replaceName, replaceID, state_expire, level + 1);
                 } else {
-                    //console.log('State ' + id + ' received with empty array, ignore channel creation');
                     adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
                 }
             } else {
