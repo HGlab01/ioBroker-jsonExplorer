@@ -89,7 +89,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                 } else {
                     id = parent + '.' + i
                 }
-                if (typeof (jObject[i]) == 'object') value = JSON.stringify(value);
+                if (typeof (jObject[i]) == 'object' && value != null) value = JSON.stringify(value);
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.silly('create id ' + id + ' with value ' + value + ' and name ' + name);
@@ -164,7 +164,7 @@ function modify(method, value) {
  * rounding of values
  * @param {string} objName ID of the object
  * @param {string} name Name of state (also used for stattAttrlib!)
- * @param {boolean | string | number | null} value Value of the state
+ * @param {any} value Value of the state
  * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
@@ -183,11 +183,12 @@ async function stateSetCreate(objName, name, value, expire = 0) {
             }
         }
         common.name = stateAttr[name] !== undefined ? stateAttr[name].name || name : name;
-        common.type = typeof (value);
+        common.type = stateAttr[name] !== undefined ? stateAttr[name].type || typeof (value) : typeof (value);
         common.role = stateAttr[name] !== undefined ? stateAttr[name].role || 'state' : 'state';
         common.read = true;
         common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
+        common.states = stateAttr[name] !== undefined ? stateAttr[name].states || '' : '';
         common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
         adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
@@ -195,16 +196,16 @@ async function stateSetCreate(objName, name, value, expire = 0) {
             || (adapter.createdStatesDetails[objName]
                 && (
                     common.name !== adapter.createdStatesDetails[objName].name
-                    || common.name !== adapter.createdStatesDetails[objName].name
                     || common.type !== adapter.createdStatesDetails[objName].type
                     || common.role !== adapter.createdStatesDetails[objName].role
                     || common.read !== adapter.createdStatesDetails[objName].read
                     || common.unit !== adapter.createdStatesDetails[objName].unit
                     || common.write !== adapter.createdStatesDetails[objName].write
+                    || common.states !== adapter.createdStatesDetails[objName].states
+                    || common.modify !== adapter.createdStatesDetails[objName].modify
                 )
             )) {
-
-            // console.log(`An attribute has changed : ${state}`);
+            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}'`);
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common
