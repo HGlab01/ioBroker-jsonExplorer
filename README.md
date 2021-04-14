@@ -38,6 +38,10 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-15 (2021-04-14)
+* (HGlab01) improve state property handling
+* (HGlab01) improve null-value handling
+
 ### 0.0.0-14 (2021-04-12)
 * (HGlab01) improve device creation
 
