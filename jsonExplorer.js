@@ -89,7 +89,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                 } else {
                     id = parent + '.' + i
                 }
-                if (typeof (jObject[i]) == 'object') value = JSON.stringify(value);
+                if (typeof (jObject[i]) == 'object' && value != null) value = JSON.stringify(value);
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.silly('create id ' + id + ' with value ' + value + ' and name ' + name);
@@ -164,7 +164,7 @@ function modify(method, value) {
  * rounding of values
  * @param {string} objName ID of the object
  * @param {string} name Name of state (also used for stattAttrlib!)
- * @param {boolean | string | number | null} value Value of the state
+ * @param {any} value Value of the state
  * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
