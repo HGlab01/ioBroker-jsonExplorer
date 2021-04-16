@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-16 (2021-04-16)
+* (HGlab01) deal with array of objects in the JSON
+
 ### 0.0.0-15 (2021-04-14)
 * (HGlab01) improve state property handling
 * (HGlab01) improve null-value handling

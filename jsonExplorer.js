@@ -41,7 +41,8 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
     try {
         for (var i in jObject) {
             name = i;
-            if (!!jObject[i] && typeof (jObject[i]) == 'object' && jObject[i] == '[object Object]') {
+            if (!!jObject[i] && typeof (jObject[i]) == 'object' && String(jObject[i]).includes('[object Object]')) {
+                adapter.log.silly(`Traverse object '${name}' with value '${jObject[i]}' and type '${typeof (jObject[i])}'`);
                 if (parent == null) {
                     id = i;
                     if (replaceName) {
@@ -83,6 +84,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                     adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
                 }
             } else {
+                adapter.log.silly(`Write state '${name}' with value '${jObject[i]}' and type '${typeof (jObject[i])}'`);
                 value = jObject[i];
                 if (parent == null) {
                     id = i;
