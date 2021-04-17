@@ -49,7 +49,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                         if (jObject[i].name) name = jObject[i].name;
                     }
                     if (replaceID) {
-                        if (jObject[i].id) id = jObject[i].id;
+                        if (jObject[i].id || jObject[i].id == 0) id = jObject[i].id;
                     }
                 } else {
                     id = parent + '.' + i;
@@ -57,7 +57,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                         if (jObject[i].name) name = jObject[i].name;
                     }
                     if (replaceID) {
-                        if (jObject[i].id) id = parent + '.' + jObject[i].id;
+                        if (jObject[i].id || jObject[i].id == 0) id = parent + '.' + jObject[i].id;
                     }
                 }
                 // Avoid channel creation for empty arrays/objects
