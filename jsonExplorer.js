@@ -1,3 +1,4 @@
+const { version } = require('./package.json');
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
@@ -357,5 +358,6 @@ module.exports = {
     checkExpire: checkExpire,
     init: init,
     setLastStartTime: setLastStartTime,
-    deleteEverything: deleteEverything
+    deleteEverything: deleteEverything,
+    version: version
 };
