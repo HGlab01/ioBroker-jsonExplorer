@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-18 (2021-04-21)
+* (HGlab01) attribute version number added
+
 ### 0.0.0-17 (2021-04-17)
 * (HGlab01) fix issue in TraverseJson if id is 0
 
