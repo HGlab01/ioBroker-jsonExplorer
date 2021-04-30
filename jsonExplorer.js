@@ -1,5 +1,6 @@
 'use strict';
 
+const path = `${__dirname}`;
 const { version } = require('./package.json');
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
@@ -175,7 +176,10 @@ function modify(method, value) {
 async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.silly('Create_state called for : ' + objName + ' with value : ' + value);
     try {
-
+        if (stateAttr[name] && stateAttr[name].blacklist == true) {
+            adapter.log.silly(`Name '${name}' on blacklist. Skip!`);
+            return;
+        }
         // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
         const common = {};
         common.modify = {};
@@ -224,7 +228,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         adapter.createdStatesDetails[objName] = common;
 
         // Set value to state
-        if (value !== null || value !== undefined) {
+        if (value !== null && value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
                 adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
@@ -361,5 +365,6 @@ module.exports = {
     init: init,
     setLastStartTime: setLastStartTime,
     deleteEverything: deleteEverything,
-    version: version
+    version: version,
+    path: path
 };
