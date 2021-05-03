@@ -228,7 +228,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         adapter.createdStatesDetails[objName] = common;
 
         // Set value to state
-        if (value !== null && value !== undefined) {
+        if (value !== undefined) {
             //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
             if (common.modify != '' && typeof common.modify == 'string') {
                 adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
@@ -241,7 +241,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
                     adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
                 }
             }
-
+            adapter.log.silly(`State "${objName}" set with value "${value}" and expire time "${expire}"`);
             await adapter.setStateAsync(objName, {
                 val: value,
                 ack: true,
