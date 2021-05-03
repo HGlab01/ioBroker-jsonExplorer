@@ -184,7 +184,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         const common = {};
         common.modify = {};
         if (!stateAttr[name]) {
-            const warnMessage = `State attribute definition missing for '${name}'`;
+            const warnMessage = `State attribute definition missing for '${name}' with value '${value}' and type of value '${typeof (value)}'`;
             if (warnMessages[name] !== warnMessage) {
                 warnMessages[name] = warnMessage;
                 // Send information to Sentry
