@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.0.0-20 (2021-05-03)
+* (HGlab01) improve null-value handling in stateSetCreate()
+
 ### 0.0.0-19 (2021-04-30)
 * (HGlab01) attribute "path" added
 * (HGlab01) minor improvements
