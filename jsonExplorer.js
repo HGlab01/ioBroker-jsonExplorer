@@ -174,7 +174,7 @@ function modify(method, value) {
  * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
-    adapter.log.silly('Create_state called for : ' + objName + ' with value : ' + value);
+    adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
     try {
         if (stateAttr[name] && stateAttr[name].blacklist == true) {
             adapter.log.silly(`Name '${name}' on blacklist. Skip!`);

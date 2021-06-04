@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.1.0 (2021-06-04)
+* (HGlab01) first beta version
+
 ### 0.0.0-21 (2021-05-03)
 * (HGlab01) improve state attribute definition missing message
 
