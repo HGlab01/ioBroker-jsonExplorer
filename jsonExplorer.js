@@ -184,11 +184,12 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         const common = {};
         common.modify = {};
         if (!stateAttr[name]) {
-            const warnMessage = `State attribute definition missing for '${name}' with value '${value}' and type of value '${typeof (value)}'`;
-            if (warnMessages[name] !== warnMessage) {
-                warnMessages[name] = warnMessage;
+            let newWarnMessage = `State attribute definition missing for '${name}' with value '${value}' and type of value '${typeof (value)}'`;
+            if (warnMessages[name] == undefined) {
+                warnMessages[name] = newWarnMessage;
                 // Send information to Sentry
-                sendSentry(warnMessage);
+                sendSentry(newWarnMessage);
+                adapter.log.silly('Message sent for ' + warnMessages[name]);
             }
         }
         common.name = stateAttr[name] !== undefined ? stateAttr[name].name || name : name;
