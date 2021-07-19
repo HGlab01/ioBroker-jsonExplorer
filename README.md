@@ -38,6 +38,9 @@ Placeholder for release script, not visible in web/admin interface
 	* (Developer) xxxx
 -->
 
+### 0.1.1 (2021-07-19)
+* (HGlab01) improve sentry handling
+
 ### 0.1.0 (2021-06-04)
 * (HGlab01) first beta version
 
