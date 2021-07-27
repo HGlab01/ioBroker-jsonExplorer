@@ -77,40 +77,6 @@ Placeholder for release script, not visible in web/admin interface
 * (HGlab01) manage device/channel/state properly
 * (HGlab01) log level from debug to silly
 
-### 0.0.0-11 (2021-02-21)
-* (HGlab01) improve Sentry handling
-
-### 0.0.0-10 (2021-02-19)
-* (HGlab01) activate Sentry
-
-### 0.0.0-9 (2021-02-17)
-* (HGlab01) if executioninterval is not set, state 'online' never set to false
-
-### 0.0.0-8 (2021-02-07)
-* (DutchmanNL) solve issue for modify value if no definition is present
-
-### 0.0.0-7
-* (HGlab01) adjust loglevel
-
-### 0.0.0-6
-* (HGlab01) bugfixes
-* (HGlab01) improve readability
-
-### 0.0.0-5
-* (HGlab01) breaking change!!! rework to more generic modify methods
-
-### 0.0.0-4
-* (HGlab01) rename template
-* (HGlab01) support generic modify element
-
-### 0.0.0-2
-* (DutchmanNL) implement capability to round values 
-* (DutchmanNL) add definition explanation to attribute template
-* (HGlab01) breaking change!!! adapter object removed from all function signatures within json-explorer; to be adopted by all callers
-
-### 0.0.0-1
-* (HGlab01) initial release
-
 ## License
 MIT License
 
