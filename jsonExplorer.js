@@ -284,15 +284,22 @@ async function stateSetCreate(objName, name, value, expire = 0) {
  */
 function sendSentry(msg) {
     try {
-        if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
-            const sentryInstance = adapter.getPluginInstance('sentry');
-            if (sentryInstance) {
-                sentryInstance.getSentryObject().captureException(msg);
-                adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${msg}`);
+        if (adapter.log.level != 'debug' && adapter.log.level != 'silly') {
+            if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
+                const sentryInstance = adapter.getPluginInstance('sentry');
+                if (sentryInstance) {
+                    sentryInstance.getSentryObject().captureException(msg);
+                    adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${msg}`);
+                } else {
+                    adapter.log.warn(`Sentry disabled, error catched: ${msg}`);
+                    console.error(`Sentry disabled, error catched: ${msg}`);
+                }
             } else {
-                adapter.log.warn(`Sentry disabled, error catched : ${msg}`);
-                console.error(`Sentry disabled, error catched : ${msg}`);
+                adapter.log.warn(`Sentry disabled, error catched: ${msg}`);
             }
+        }
+        else {
+            adapter.log.warn(`Sentry disabled (debug mode), error catched: ${msg}`);
         }
     } catch (error) {
         adapter.log.error(`Error in function sendSentry(): ${error}`);
