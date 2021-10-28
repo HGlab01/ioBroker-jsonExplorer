@@ -33,6 +33,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ## Changelog
 
+### 0.1.3 (2021-10-28)
+* (HGlab01) fix issue: channel is not always created
+
 ### 0.1.2 (2021-08-04)
 * (HGlab01) no sentry handling in 'debug' and 'silly' mode
 
