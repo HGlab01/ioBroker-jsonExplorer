@@ -40,6 +40,18 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
             'native': {},
         });
         level = level + 1;
+    } else if (parent != null && level == 1) {
+        if (replaceName) {
+            name = jObject.name ? jObject.name : '';
+        }
+        await adapter.setObjectAsync(parent, {
+            'type': 'channel',
+            'common': {
+                'name': name,
+            },
+            'native': {},
+        });
+        level = level + 1;
     }
 
     try {
