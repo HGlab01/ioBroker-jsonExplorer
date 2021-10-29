@@ -32,8 +32,12 @@ All states can be monitored and set to NULL if it is not updated in the last run
 https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ## Changelog
+<!--
+    Placeholder for the next version (at the beginning of the line):
+    ### __WORK IN PROGRESS__
+-->
 
-### 0.1.4 (2021-10-29)
+### __WORK IN PROGRESS__
 * (HGlab01) adapter.setObjectAsync() called asynchronously
 
 ### 0.1.3 (2021-10-28)
