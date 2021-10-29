@@ -36,7 +36,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### 0.1.4 (2021-10-29)
+### 0.1.5-alpha.0 (2021-10-29)
 * (HGlab01) adapter.setObjectAsync() called asynchronously
 
 ### 0.1.3 (2021-10-28)
