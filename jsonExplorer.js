@@ -24,7 +24,7 @@ function init(adapterOrigin, stateAttribute) {
  * @param {number} state_expire expire time for the current setState in seconds; default is no expire
  * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device & channel
  */
-async function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
+function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
     let id = null;
     let value = null;
     let name = '';
@@ -32,7 +32,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
         if (replaceName) {
             name = jObject.name ? jObject.name : '';
         }
-        await adapter.setObjectAsync(parent, {
+        adapter.setObjectAsync(parent, {
             'type': 'device',
             'common': {
                 'name': name,
@@ -44,7 +44,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
         if (replaceName) {
             name = jObject.name ? jObject.name : '';
         }
-        await adapter.setObjectAsync(parent, {
+        adapter.setObjectAsync(parent, {
             'type': 'channel',
             'common': {
                 'name': name,
@@ -79,7 +79,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                 // Avoid channel creation for empty arrays/objects
                 if (Object.keys(jObject[i]).length !== 0) {
                     if (level == 0) {
-                        await adapter.setObjectAsync(id, {
+                        adapter.setObjectAsync(id, {
                             'type': 'device',
                             'common': {
                                 'name': name,
@@ -87,7 +87,7 @@ async function TraverseJson(jObject, parent = null, replaceName = false, replace
                             'native': {},
                         });
                     } else if (level == 1) {
-                        await adapter.setObjectAsync(id, {
+                        adapter.setObjectAsync(id, {
                             'type': 'channel',
                             'common': {
                                 'name': name,
