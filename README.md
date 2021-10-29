@@ -33,6 +33,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ## Changelog
 
+### 0.1.3 (2021-10-29)
+* (HGlab01) adapter.setObjectAsync() called asynchronously
+
 ### 0.1.3 (2021-10-28)
 * (HGlab01) fix issue: channel is not always created
 
