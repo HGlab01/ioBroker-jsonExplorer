@@ -14,37 +14,24 @@ on:
     pull_request: {}
 
 jobs:
-  # Performs quick checks before the expensive test runs
-  check-and-lint:
-    if: contains(github.event.head_commit.message, '[skip ci]') == false
+  build:
 
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: ioBroker/testing-action-check@v1
-        with:
-          node-version: '14.x'
-          # Uncomment the following line if your adapter cannot be installed using 'npm ci'
-          # install-command: 'npm install'
-          lint: true
-
-  # Runs adapter tests on all supported node versions and OSes
-  adapter-tests:
-    if: contains(github.event.head_commit.message, '[skip ci]') == false
-
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [10.x, 12.x, 14.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      - uses: ioBroker/testing-action-adapter@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-          os: ${{ matrix.os }}
-          # Uncomment the following line if your adapter cannot be installed using 'npm ci'
-          # install-command: 'npm install'
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci
+    - run: npm run build --if-present
+    #- run: npm test
 
 # TODO: To enable automatic npm releases, create a token on npmjs.org
 # Enter this token as a GitHub secret (with name NPM_TOKEN) in the repository options
