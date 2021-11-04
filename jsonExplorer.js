@@ -116,8 +116,8 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
             }
         }
     } catch (error) {
-        error = `Error in function TraverseJson(): ${error}`;
-        adapter.log.error(error);
+        let emsg = `Error in function TraverseJson(): ${error}`;
+        adapter.log.error(emsg);
         sendSentry(error);
     }
 }
@@ -168,9 +168,9 @@ function modify(method, value) {
         if (!result) return value;
         return result;
     } catch (error) {
-        error = `Error in function modify for method ${method} and value ${value}: ${error}`;
-        adapter.log.error(error);
-        adapter.sendSentry(error);
+        let emsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
+        adapter.log.error(emsg);
+        sendSentry(error);
         return value;
     }
 }
@@ -285,33 +285,34 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.write && adapter.subscribeStates(objName);
 
     } catch (error) {
-        error = `Error in function stateSetCreate(): ${error}`;
-        adapter.log.error(error);
+        let emsg = `Error in function stateSetCreate(): ${error}`;
+        adapter.log.error(emsg);
+        sendSentry(error);
     }
 }
 
 /**
  * Handles error mesages for log and Sentry
- * @param {string} msg Error message
+ * @param {Error} error Error message
  */
-function sendSentry(msg) {
+function sendSentry(error) {
     try {
         if (adapter.log.level != 'debug' && adapter.log.level != 'silly') {
             if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
                 const sentryInstance = adapter.getPluginInstance('sentry');
                 if (sentryInstance) {
-                    sentryInstance.getSentryObject().captureException(msg);
-                    adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${msg}`);
+                    sentryInstance.getSentryObject().captureException(error);
+                    adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${error}`);
                 } else {
-                    adapter.log.warn(`Sentry disabled, error catched: ${msg}`);
-                    console.error(`Sentry disabled, error catched: ${msg}`);
+                    adapter.log.warn(`Sentry disabled, error catched: ${error}`);
+                    console.error(error.stack);
                 }
             } else {
-                adapter.log.warn(`Sentry disabled, error catched: ${msg}`);
+                adapter.log.warn(`Sentry disabled, error catched: ${error}`);
             }
         }
         else {
-            adapter.log.warn(`Sentry disabled (debug mode), error catched: ${msg}`);
+            adapter.log.warn(`Sentry disabled (debug mode), error catched: ${error}`);
         }
     } catch (error) {
         adapter.log.error(`Error in function sendSentry(): ${error}`);
