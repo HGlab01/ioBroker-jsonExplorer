@@ -28,33 +28,34 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
     let id = null;
     let value = null;
     let name = '';
-    if (parent != null && level == 0) {
-        if (replaceName) {
-            name = jObject.name ? jObject.name : '';
-        }
-        adapter.setObjectAsync(parent, {
-            'type': 'device',
-            'common': {
-                'name': name,
-            },
-            'native': {},
-        });
-        level = level + 1;
-    } else if (parent != null && level == 1) {
-        if (replaceName) {
-            name = jObject.name ? jObject.name : '';
-        }
-        adapter.setObjectAsync(parent, {
-            'type': 'channel',
-            'common': {
-                'name': name,
-            },
-            'native': {},
-        });
-        level = level + 1;
-    }
 
     try {
+        if (parent != null && level == 0) {
+            if (replaceName) {
+                name = jObject.name ? jObject.name : '';
+            }
+            adapter.setObjectAsync(parent, {
+                'type': 'device',
+                'common': {
+                    'name': name,
+                },
+                'native': {},
+            });
+            level = level + 1;
+        } else if (parent != null && level == 1) {
+            if (replaceName) {
+                name = jObject.name ? jObject.name : '';
+            }
+            adapter.setObjectAsync(parent, {
+                'type': 'channel',
+                'common': {
+                    'name': name,
+                },
+                'native': {},
+            });
+            level = level + 1;
+        }
+
         for (var i in jObject) {
             name = i;
             if (!!jObject[i] && typeof (jObject[i]) == 'object' && String(jObject[i]).includes('[object Object]')) {
@@ -116,8 +117,9 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
             }
         }
     } catch (error) {
-        let emsg = `Error in function TraverseJson(): ${error}`;
-        adapter.log.error(emsg);
+        let eMsg = `Error in function TraverseJson(): ${error}`;
+        adapter.log.error(eMsg);
+        console.error(eMsg);
         sendSentry(error);
     }
 }
@@ -168,8 +170,9 @@ function modify(method, value) {
         if (!result) return value;
         return result;
     } catch (error) {
-        let emsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
-        adapter.log.error(emsg);
+        let eMsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
+        adapter.log.error(eMsg);
+        console.error(eMsg);
         sendSentry(error);
         return value;
     }
@@ -285,15 +288,16 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.write && adapter.subscribeStates(objName);
 
     } catch (error) {
-        let emsg = `Error in function stateSetCreate(): ${error}`;
-        adapter.log.error(emsg);
+        let eMsg = `Error in function stateSetCreate(): ${error}`;
+        adapter.log.error(eMsg);
+        console.error(eMsg);
         sendSentry(error);
     }
 }
 
 /**
  * Handles error mesages for log and Sentry
- * @param {Error} error Error message
+ * @param {any} error Error message
  */
 function sendSentry(error) {
     try {
@@ -305,7 +309,6 @@ function sendSentry(error) {
                     adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${error}`);
                 } else {
                     adapter.log.warn(`Sentry disabled, error catched: ${error}`);
-                    console.error(error.stack);
                 }
             } else {
                 adapter.log.warn(`Sentry disabled, error catched: ${error}`);
