@@ -56,7 +56,7 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
             level = level + 1;
         }
 
-        for (var i in jObject) {
+        for (let i in jObject) {
             name = i;
             if (!!jObject[i] && typeof (jObject[i]) == 'object' && String(jObject[i]).includes('[object Object]')) {
                 adapter.log.silly(`Traverse object '${name}' with value '${jObject[i]}' and type '${typeof (jObject[i])}'`);
@@ -106,7 +106,7 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
                 if (parent == null) {
                     id = i;
                 } else {
-                    id = parent + '.' + i
+                    id = parent + '.' + i;
                 }
                 if (typeof (jObject[i]) == 'object' && value != null) value = JSON.stringify(value);
                 //avoid state creation if empty
@@ -117,7 +117,7 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
             }
         }
     } catch (error) {
-        let eMsg = `Error in function TraverseJson(): ${error}`;
+        const eMsg = `Error in function TraverseJson(): ${error}`;
         adapter.log.error(eMsg);
         console.error(eMsg);
         sendSentry(error);
@@ -136,23 +136,23 @@ function modify(method, value) {
         if (method.match(/^custom:/gi) != null) {                               //check if starts with "custom:"
             value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
         } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) * inBracket;
         } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) / inBracket;
         } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
-            let inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
+            const inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
             value = Math.round(parseFloat(value) * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
         } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) + inBracket;
         } else if (method.match(/^substract\(/gi) != null) {                    //check if starts with "substract("
-            let inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
+            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
             value = parseFloat(value) - inBracket;
         }
         else {
-            let methodUC = method.toUpperCase();
+            const methodUC = method.toUpperCase();
             switch (methodUC) {
                 case 'UPPERCASE':
                     if (typeof value == 'string') result = value.toUpperCase();
@@ -170,7 +170,7 @@ function modify(method, value) {
         if (!result) return value;
         return result;
     } catch (error) {
-        let eMsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
+        const eMsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
         adapter.log.error(eMsg);
         console.error(eMsg);
         sendSentry(error);
@@ -203,7 +203,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
             if (warnMessages[name] == undefined) {
                 warnMessages[name] = newWarnMessage;
                 // Send information to Sentry
-                sendSentry(newWarnMessage);
+                sendSentry(newWarnMessage, 'warn', name);
                 adapter.log.silly('Message sent for ' + warnMessages[name]);
             }
         }
@@ -299,23 +299,42 @@ async function stateSetCreate(objName, name, value, expire = 0) {
  * Handles error mesages for log and Sentry
  * @param {any} error Error message
  */
-function sendSentry(error) {
+function sendSentry(mObject, mType = 'error', missingAttribute = null) {
     try {
         if (adapter.log.level != 'debug' && adapter.log.level != 'silly') {
-            if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
-                const sentryInstance = adapter.getPluginInstance('sentry');
-                if (sentryInstance) {
-                    sentryInstance.getSentryObject().captureException(error);
-                    adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${error}`);
+            if (mType == 'warn') {
+                if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
+                    const sentryInstance = adapter.getPluginInstance('sentry');
+                    if (sentryInstance) {
+                        const Sentry = sentryInstance.getSentryObject();
+                        Sentry && Sentry.withScope(scope => {
+                            scope.setLevel(Sentry.Severity.Warning);
+                            if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
+                            Sentry.captureMessage(mObject);
+                            adapter.log.info(`Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`);
+                        });
+                    } else {
+                        adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
+                    }
                 } else {
-                    adapter.log.warn(`Sentry disabled, error catched: ${error}`);
+                    adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                 }
             } else {
-                adapter.log.warn(`Sentry disabled, error catched: ${error}`);
+                if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
+                    const sentryInstance = adapter.getPluginInstance('sentry');
+                    if (sentryInstance) {
+                        sentryInstance.getSentryObject().captureException(mObject);
+                        adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`);
+                    } else {
+                        adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
+                    }
+                } else {
+                    adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
+                }
             }
         }
         else {
-            adapter.log.warn(`Sentry disabled (debug mode), error catched: ${error}`);
+            adapter.log.warn(`Sentry disabled (debug mode), error catched: ${mObject}`);
         }
     } catch (error) {
         adapter.log.error(`Error in function sendSentry(): ${error}`);
@@ -357,8 +376,9 @@ async function checkExpire(searchpattern) {
             }
         }
     } catch (error) {
-        error = `Error in function checkExpire(): ${error}`;
-        adapter.log.error(error);
+        let eMsg = `Error in function checkExpire(): ${error}`;
+        adapter.log.error(eMsg);
+        console.error(eMsg);
         sendSentry(error);
     }
 }
