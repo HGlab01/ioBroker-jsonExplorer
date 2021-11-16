@@ -36,7 +36,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### __WORK IN PROGRESS__
+### 0.1.7 (2021-11-16)
 * (HGlab01) send missing attributes as warning to Sentry
 
 ### 0.1.6 (2021-11-04)
