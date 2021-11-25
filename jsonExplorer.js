@@ -2,8 +2,10 @@
 
 const path = `${__dirname}`;
 const { version } = require('./package.json');
+const fs = require('fs');
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
+let firstTime = true;
 
 /**
  * @param {object} adapter Adapter-Class (normally "this")
@@ -178,6 +180,22 @@ function modify(method, value) {
     }
 }
 
+function saveWarnMessages(warnMessages) {
+    try {
+        fs.writeFileSync(`./warnMessages.json`, JSON.stringify(warnMessages), 'utf8');
+    } catch (error) {
+        adapter.log.error('Error in jsonExplorer at saveWarnMessages: ' + error);
+    }
+}
+
+function readWarnMessages() {
+    try {
+        const data = fs.readFileSync(`./warnMessages.json`, 'utf8');
+        warnMessages = JSON.parse(data);
+    } catch (error) {
+        if (error.message && error.message.includes('ENOENT') == false) adapter.log.error('Error in jsonExplorer at readWarnMessages: ' + error);
+    }
+}
 
 /**
  * Function to handle state creation
@@ -190,6 +208,10 @@ function modify(method, value) {
  */
 async function stateSetCreate(objName, name, value, expire = 0) {
     adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
+    if (firstTime) {
+        firstTime = false;
+        readWarnMessages();
+    }
     try {
         if (stateAttr[name] && stateAttr[name].blacklist == true) {
             adapter.log.silly(`Name '${name}' on blacklist. Skip!`);
@@ -202,6 +224,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
             let newWarnMessage = `State attribute definition missing for '${name}' with value '${value}' and type of value '${typeof (value)}'`;
             if (warnMessages[name] == undefined) {
                 warnMessages[name] = newWarnMessage;
+                saveWarnMessages(warnMessages);
                 // Send information to Sentry
                 sendSentry(newWarnMessage, 'warn', name);
                 adapter.log.silly('Message sent for ' + warnMessages[name]);
