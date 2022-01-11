@@ -96,7 +96,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 ## License
 MIT License
 
-Copyright (c) 2021 HGlab01 & DutchmanNL
+Copyright (c) HGlab01 & DutchmanNL
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
