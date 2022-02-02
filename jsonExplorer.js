@@ -236,7 +236,7 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.read = true;
         common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
-        common.states = stateAttr[name] !== undefined ? stateAttr[name].states || '' : '';
+        common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
         common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
         adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
