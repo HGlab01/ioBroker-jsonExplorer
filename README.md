@@ -36,8 +36,8 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### 0.1.9-alpha.2 (2022-02-02)
-* (HGlab01) obj.common.states handling improved for js-controller 4.0
+### 0.1.9 (2022-02-15)
+* (HGlab01) js-controller 4.0 readiness
 
 ### 0.1.8 (2021-11-25)
 * (HGlab01) save 'warnMessages'-array as file to reimport after restart of adapter
