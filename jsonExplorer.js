@@ -370,6 +370,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
  */
 async function checkExpire(searchpattern) {
     try {
+        adapter.log.debug('checkExpire() searchpattern is ' + searchpattern);
         let state = await adapter.getStateAsync('online');
         let onlineTs = 0;
         if (state) {
@@ -394,7 +395,7 @@ async function checkExpire(searchpattern) {
                 adapter.log.silly(`${idS}: ${stateTs} | ${onlineTs} | ${dif}`);
                 if ((onlineTs - stateTs) > 0) {
                     await adapter.setStateAsync(idS, null, true);
-                    adapter.log.silly(`Set state ${idS} to null`);
+                    adapter.log.debug(`checkExpire() sets state ${idS} to null`);
                 }
             }
         }
