@@ -399,6 +399,7 @@ async function checkExpire(searchpattern) {
                 }
             }
         }
+        adapter.log.debug('checkExpire() done');
     } catch (error) {
         let eMsg = `Error in function checkExpire(): ${error}`;
         adapter.log.error(eMsg);
@@ -411,7 +412,14 @@ async function checkExpire(searchpattern) {
  * Sets state online to true as reference for outdated states
  */
 async function setLastStartTime() {
-    await stateSetCreate('online', 'online', true);
+    let now = new Date();
+    let onlineStateTS = 0;
+    let onlineState = await adapter.getStateAsync('online');
+    if (onlineState) onlineStateTS = onlineState.ts;
+    //just update timestamp if last update is older than 10 seconds
+    if ((now - onlineStateTS) > 10000) {
+        await stateSetCreate('online', 'online', true);
+    }
 }
 
 /**
