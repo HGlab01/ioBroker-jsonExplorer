@@ -240,20 +240,23 @@ async function stateSetCreate(objName, name, value, expire = 0) {
         common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
         adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
-        if ((!adapter.createdStatesDetails[objName])
-            || (adapter.createdStatesDetails[objName]
-                && (
-                    common.name !== adapter.createdStatesDetails[objName].name
-                    || common.type !== adapter.createdStatesDetails[objName].type
-                    || common.role !== adapter.createdStatesDetails[objName].role
-                    || common.read !== adapter.createdStatesDetails[objName].read
-                    || common.unit !== adapter.createdStatesDetails[objName].unit
-                    || common.write !== adapter.createdStatesDetails[objName].write
-                    || common.states !== adapter.createdStatesDetails[objName].states
-                    || common.modify !== adapter.createdStatesDetails[objName].modify
-                )
-            )) {
-            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}'`);
+        let objectDefiniton = {};
+        if (!adapter.createdStatesDetails[objName]) {
+            objectDefiniton = await adapter.getObjectAsync(objName);
+            if (objectDefiniton && objectDefiniton.common) objectDefiniton = objectDefiniton.common;
+        }
+        else objectDefiniton = adapter.createdStatesDetails[objName];
+
+        if (!objectDefiniton
+            || common.name !== objectDefiniton.name
+            || common.type !== objectDefiniton.type
+            || common.role !== objectDefiniton.role
+            || common.read !== objectDefiniton.read
+            || common.unit !== objectDefiniton.unit
+            || common.write !== objectDefiniton.write
+            || common.states !== objectDefiniton.states
+            || common.modify !== objectDefiniton.modify) {
+            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}' instead of '${JSON.stringify(objectDefiniton)}'`);
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common
