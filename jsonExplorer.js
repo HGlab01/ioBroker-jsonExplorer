@@ -206,7 +206,7 @@ function readWarnMessages() {
  * @param {any} value Value of the state
  * @param {number} expire expire time in seconds; default is no expire
  */
-async function stateSetCreate(objName, name, value, expire = 0) {
+async function stateSetCreate(objName, name, value) {
     adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
     if (firstTime) {
         firstTime = false;
@@ -283,11 +283,10 @@ async function stateSetCreate(objName, name, value, expire = 0) {
                     adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
                 }
             }
-            adapter.log.silly(`State "${objName}" set with value "${value}" and expire time "${expire}"`);
+            adapter.log.silly(`State "${objName}" set with value "${value}`);
             await adapter.setStateAsync(objName, {
                 val: value,
-                ack: true,
-                expire: expire
+                ack: true
             });
         }
 
