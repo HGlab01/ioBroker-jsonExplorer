@@ -36,8 +36,10 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### 0.1.11-alpha.0 (2023-03-26)
+### 0.1.11-alpha.1 (2023-03-29)
 * (HGlab01) Improve stateSetCreate
+* (HGlab01) no longer support for state expire
+* (HGlab01) TraverseJson() --> traverseJson()
 
 ### 0.1.10 (2022-12-04)
 * (HGlab01) setLastStartTime() optimized
