@@ -18,6 +18,14 @@ function init(adapterOrigin, stateAttribute) {
 }
 
 /**
+ * @deprecated Since version 0.1.11 Will be deleted in version 0.1.12 Use traverseJson() instead.
+ */
+// eslint-disable-next-line no-unused-vars
+function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
+    traverseJson(jObject, parent, replaceName, replaceID, level);
+}
+
+/**
  * Traeverses the json-object and provides all information for creating/updating states
  * @param {object} jObject Json-object to be added as states
  * @param {string | null} parent Defines the parent object in the state tree; default=root
@@ -26,7 +34,7 @@ function init(adapterOrigin, stateAttribute) {
  * @param {number} state_expire expire time for the current setState in seconds; default is no expire
  * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device & channel
  */
-function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
+function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
     let id = null;
     let value = null;
     let name = '';
@@ -98,7 +106,7 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
                             'native': {},
                         });
                     }
-                    TraverseJson(jObject[i], id, replaceName, replaceID, state_expire, level + 1);
+                    traverseJson(jObject[i], id, replaceName, replaceID, level + 1);
                 } else {
                     adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
                 }
@@ -114,12 +122,12 @@ function TraverseJson(jObject, parent = null, replaceName = false, replaceID = f
                 //avoid state creation if empty
                 if (value != '[]') {
                     adapter.log.silly('create id ' + id + ' with value ' + value + ' and name ' + name);
-                    stateSetCreate(id, name, value, state_expire);
+                    stateSetCreate(id, name, value);
                 }
             }
         }
     } catch (error) {
-        const eMsg = `Error in function TraverseJson(): ${error}`;
+        const eMsg = `Error in function traverseJson(): ${error}`;
         adapter.log.error(eMsg);
         console.error(eMsg);
         sendSentry(error);
@@ -204,7 +212,6 @@ function readWarnMessages() {
  * @param {string} objName ID of the object
  * @param {string} name Name of state (also used for stattAttrlib!)
  * @param {any} value Value of the state
- * @param {number} expire expire time in seconds; default is no expire
  */
 async function stateSetCreate(objName, name, value) {
     adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
@@ -373,6 +380,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
 async function checkExpire(searchpattern) {
     try {
         adapter.log.debug('checkExpire() searchpattern is ' + searchpattern);
+        await sleep(100);
         let state = await adapter.getStateAsync('online');
         let onlineTs = 0;
         if (state) {
@@ -436,8 +444,16 @@ async function deleteEverything(devicename) {
     }
 }
 
+/**
+* @param {number} ms
+*/
+function sleep(ms) {
+    return /** @type {Promise<void>} */(new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
+}
+
 module.exports = {
     TraverseJson: TraverseJson,
+    traverseJson: traverseJson,
     stateSetCreate: stateSetCreate,
     checkExpire: checkExpire,
     init: init,
