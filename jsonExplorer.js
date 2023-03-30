@@ -460,5 +460,6 @@ module.exports = {
     setLastStartTime: setLastStartTime,
     deleteEverything: deleteEverything,
     version: version,
-    path: path
+    path: path,
+    sleep: sleep
 };
