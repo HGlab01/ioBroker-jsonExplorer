@@ -1,4 +1,7 @@
 # Older changes
+## 0.1.7 (2021-11-16)
+* (HGlab01) send missing attributes as warning to Sentry
+
 ## 0.1.6 (2021-11-04)
 * (HGlab01) Sentry and error logging optimized
 
