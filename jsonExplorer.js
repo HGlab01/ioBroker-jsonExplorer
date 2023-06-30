@@ -216,8 +216,9 @@ function readWarnMessages() {
 async function stateSetCreate(objName, name, value) {
     adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
     let objNameOrigin = objName;
-    objName = objName.replace(/[^a-zA-Z0-9]/g, '_');
-    if (objNameOrigin != objName) adapter.log.silly(`Object name '${objNameOrigin}' renamed to '${objName}'`);
+    //objName = objName.replace(/[^a-zA-Z0-9]/g, '_');
+    objName = objName.replace(adapter.FORBIDDEN_CHARS, '_');
+    if (objNameOrigin != objName) adapter.log.info(`Object name '${objNameOrigin}' renamed to '${objName}'`);
 
     if (firstTime) {
         firstTime = false;
