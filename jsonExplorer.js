@@ -38,6 +38,7 @@ function traverseJson(jObject, parent = null, replaceName = false, replaceID = f
     let id = null;
     let value = null;
     let name = '';
+    parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
 
     try {
         if (parent != null && level == 0) {
@@ -87,6 +88,7 @@ function traverseJson(jObject, parent = null, replaceName = false, replaceID = f
                         if (jObject[i].id || jObject[i].id == 0) id = parent + '.' + jObject[i].id;
                     }
                 }
+                id = id.replace(adapter.FORBIDDEN_CHARS, '_');
                 // Avoid channel creation for empty arrays/objects
                 if (Object.keys(jObject[i]).length !== 0) {
                     if (level == 0) {
