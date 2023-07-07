@@ -10,13 +10,13 @@
 
 ## How to prepare
 Create file `/lib/stateAttr.js` in your adapter directory based on template `_template/stateAttr.js`and add  
-* `const JsonExplorer = require('iobroker-jsonexplorer');`
+* `const jsonExplorer = require('iobroker-jsonexplorer');`
 * `const stateAttr = require(__dirname + '/lib/stateAttr.js'); // Load attribute library`  
 in section "Load your modules here"  
 Install `iobroker-jsonexplorer` by using `npm i iobroker-jsonexplorer`  
 
 
-Add line `JsonExplorer.init(this, stateAttr);` to the adapter constructor, where "this" is your adapter class object.  
+Add line `jsonExplorer.init(this, stateAttr);` to the adapter constructor, where "this" is your adapter class object.  
 
 ## How to use
 Call `await JsonExplorer.TraverseJson(result, parent, replaceName, replaceID);`  
@@ -26,7 +26,7 @@ replaceName: true|false; if true, the description of a channel will be replaced 
 replaceID: true|false; if true, the description of a channel will be replaced by the id of a leaf-state if available (search for a state with id "id")
 
 ### Expire management (optional)
-All states can be monitored and set to NULL if it is not updated in the last run by calling `JsonExplorer.setLastStartTime()` before calling `JsonExplorer.TraverseJson()` and `JsonExplorer.checkExpire('*')` after caling `JsonExplorer.TraverseJson()`
+All states can be monitored and set to NULL if it is not updated in the last run by calling `jsonExplorer.setLastStartTime()` before calling `jsonExplorer.traverseJson()` and `jsonExplorer.checkExpire('*')` after caling `JsonExplorer.TraverseJson()`
 
 ### Reference implementation
 https://github.com/HGlab01/ioBroker.fuelpricemonitor
