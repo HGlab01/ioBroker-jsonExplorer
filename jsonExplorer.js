@@ -175,6 +175,14 @@ function modify(method, value) {
                 case 'UCFIRST':
                     if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
                     break;
+
+                case 'IGNOREVALUE':
+                    value = {
+                        value: value,
+                        ignore: true
+                    };
+                    break;
+
                 default:
                     result = value;
             }
@@ -297,10 +305,19 @@ async function stateSetCreate(objName, name, value) {
                 }
             }
             adapter.log.silly(`State "${objName}" set with value "${value}`);
-            await adapter.setStateAsync(objName, {
-                val: value,
-                ack: true
-            });
+
+            if (typeof (value) == 'object' && value != null && value.ignore) {
+                // ignore write of value
+                adapter.log.warn(`Value ignored for ${objName} | ${value}`)
+
+
+            } else {
+                await adapter.setStateAsync(objName, {
+                    val: value,
+                    ack: true
+                });
+            }
+
         }
 
         // Timer to set online state to FALSE when not updated

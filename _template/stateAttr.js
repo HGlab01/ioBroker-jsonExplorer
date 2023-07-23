@@ -9,8 +9,8 @@
 		rootName: 'Device Info channel,		// {default: NotUsed} Upper channel name
 		name: 'Name of state',				// {default: same as id} Name definition for object
 		type: >typeof (value)<,				// {default: typeof (value)} type of value automatically detected
-		read: true,							// {default: true} Name defition for object
-		write: true,						// {default: false} Name defition for object
+		read: true,							// {default: true} Name definition for object
+		write: true,						// {default: false} Name definition for object
 		role: 'indicator.info',				// {default: state} Role as defined by https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md
 		modify: ''							// {default: ''} see below
 	},
@@ -18,11 +18,11 @@
 
 /**
  * Defines supported methods for element modify which can be used in stateAttr.js
- * In addition: 'cumstom: YOUR CALCULATION' allows any calculation, where 'value' is the input parameter.
- * Example: 
+ * In addition: 'custom: YOUR CALCULATION' allows any calculation, where 'value' is the input parameter.
+ * Example:
  * modify: 'custom: value + 1' --> add 1 to the json-input
- * 
- *  * supported methods (as string): 
+ *
+ *  * supported methods (as string):
  *  - round(number_of_digits as {number})  //integer only
  * 	- multiply(factor as {number})
  *  - divide(factor as {number})
@@ -31,11 +31,12 @@
  *  - upperCase
  *  - lowerCase
  *  - ucFirst
- * 
- * Examples for usage of embeded methods:
+ *  - IGNOREVALUE , to be used if value needs modification and should not be written by this module
+ *
+ * Examples for usage of embedded methods:
  * modify: ['multiply(3.6)', 'round(2)'] --> defined as array --> multiplied by 3.6 and then the result is rounded by 2 digits
  * modify: 'upperCase' --> no array needed as there is only one action; this uppercases the string
- * 
+ *
  */
 
 /**
