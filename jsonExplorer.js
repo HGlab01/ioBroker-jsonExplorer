@@ -308,7 +308,7 @@ async function stateSetCreate(objName, name, value) {
 
             if (typeof (value) == 'object' && value != null && value.ignore) {
                 // ignore write of value
-                adapter.log.warn(`Value ignored for ${objName} | ${value}`)
+                adapter.log.silly(`Value ignored for ${objName} | ${value}`)
 
 
             } else {
