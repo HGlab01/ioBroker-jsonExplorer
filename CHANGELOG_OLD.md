@@ -1,4 +1,7 @@
 # Older changes
+## 0.1.8 (2021-11-25)
+* (HGlab01) save 'warnMessages'-array as file to reimport after restart of adapter
+
 ## 0.1.7 (2021-11-16)
 * (HGlab01) send missing attributes as warning to Sentry
 

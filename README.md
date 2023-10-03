@@ -36,7 +36,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### __WORK IN PROGRESS__
+### 0.1.13-alpha.0 (2023-10-03)
 * (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
 
 ### 0.1.12 (2023-07-03)
@@ -54,9 +54,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ### 0.1.9 (2022-02-15)
 * (HGlab01) js-controller 4.0 readiness
-
-### 0.1.8 (2021-11-25)
-* (HGlab01) save 'warnMessages'-array as file to reimport after restart of adapter
 
 ## License
 MIT License
