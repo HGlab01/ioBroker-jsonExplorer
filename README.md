@@ -36,6 +36,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### __WORK IN PROGRESS__
+* (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
+
 ### 0.1.12 (2023-07-03)
 * (HGlab01) Improve statename verification
 

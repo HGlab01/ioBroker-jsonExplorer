@@ -346,7 +346,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     if (sentryInstance) {
                         const Sentry = sentryInstance.getSentryObject();
                         Sentry && Sentry.withScope(scope => {
-                            scope.setLevel(Sentry.Severity.Warning);
+                            scope.setLevel('warning');
                             if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
                             Sentry.captureMessage(mObject);
                             adapter.log.info(`Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`);
