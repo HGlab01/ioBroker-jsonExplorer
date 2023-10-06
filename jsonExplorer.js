@@ -7,8 +7,8 @@ let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
 /**
- * @param {object} adapter Adapter-Class (normally "this")
- * @param {object} stateAttr check README
+ * @param {object} adapterOrigin Adapter-Class (normally "this")
+ * @param {object} stateAttribute check README
  */
 function init(adapterOrigin, stateAttribute) {
     readWarnMessages();
@@ -38,8 +38,10 @@ function traverseJson(jObject, parent = null, replaceName = false, replaceID = f
     let id = null;
     let value = null;
     let name = '';
-    parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
 
+    if (parent != null) {
+        parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
+    }
     try {
         if (parent != null && level == 0) {
             if (replaceName) {
@@ -175,6 +177,12 @@ function modify(method, value) {
                 case 'UCFIRST':
                     if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
                     break;
+                case 'TOINTEGER':
+                    result = parseInt(value);
+                    break;
+                case 'TOFLOAT':
+                    result = parseFloat(value);
+                    break;
                 default:
                     result = value;
             }
@@ -253,12 +261,20 @@ async function stateSetCreate(objName, name, value) {
         common.type = stateAttr[name] !== undefined ? stateAttr[name].type || typeof (value) : typeof (value);
         common.role = stateAttr[name] !== undefined ? stateAttr[name].role || 'state' : 'state';
         common.read = true;
-        common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
+        //common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
         common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
-        common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
+        //common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
         common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
         adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
+        // Only add values for unit, modify and states if needed
+        if (stateAttr[name] != null && stateAttr[name].unit != null) {
+            common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
+        }
+        if (stateAttr[name] != null && stateAttr[name].states != null) {
+            common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
+        }
+        
         let objectDefiniton = {};
         if (!adapter.createdStatesDetails[objName]) {
             objectDefiniton = await adapter.getObjectAsync(objName);
