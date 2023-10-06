@@ -5,13 +5,13 @@ const { version } = require('./package.json');
 const fs = require('fs');
 let stateExpire = {}, warnMessages = {}, stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
-let firstTime = true;
 
 /**
  * @param {object} adapter Adapter-Class (normally "this")
  * @param {object} stateAttr check README
  */
 function init(adapterOrigin, stateAttribute) {
+    readWarnMessages();
     adapter = adapterOrigin;
     adapter.createdStatesDetails = {};
     stateAttr = stateAttribute;
@@ -207,6 +207,16 @@ function readWarnMessages() {
     }
 }
 
+function sendVersionInfo(versionInfo) {
+    let oldVersionInfoSentry = warnMessages['versionInfoSentry'];
+    let versionInfoSentry = `Adapter was started in version ${versionInfo}`;
+    if (oldVersionInfoSentry != versionInfoSentry) {
+        sendSentry(versionInfoSentry, 'info');
+        warnMessages['versionInfoSentry'] = versionInfoSentry;
+        saveWarnMessages(warnMessages);
+    }
+}
+
 /**
  * Function to handle state creation
  * proper object definitions
@@ -221,10 +231,6 @@ async function stateSetCreate(objName, name, value) {
     objName = objName.replace(adapter.FORBIDDEN_CHARS, '_');
     if (objNameOrigin != objName) adapter.log.info(`Object name '${objNameOrigin}' renamed to '${objName}'`);
 
-    if (firstTime) {
-        firstTime = false;
-        readWarnMessages();
-    }
     try {
         if (stateAttr[name] && stateAttr[name].blacklist == true) {
             adapter.log.silly(`Name '${name}' on blacklist. Skip!`);
@@ -335,12 +341,25 @@ async function stateSetCreate(objName, name, value) {
 
 /**
  * Handles error mesages for log and Sentry
- * @param {any} error Error message
+ * @param {any} mObject Message object
+ * @param {string} mType Message type, can be info,warn and error
+ * @param {string|null} missingAttribute Name of the attribute which was not defined
  */
 function sendSentry(mObject, mType = 'error', missingAttribute = null) {
     try {
         if (adapter.log.level != 'debug' && adapter.log.level != 'silly') {
-            if (mType == 'warn') {
+            if (mType == 'info') {
+                if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
+                    const sentryInstance = adapter.getPluginInstance('sentry');
+                    if (sentryInstance) {
+                        const Sentry = sentryInstance.getSentryObject();
+                        Sentry && Sentry.withScope(scope => {
+                            scope.setLevel('info');
+                            Sentry.captureMessage(mObject);
+                        });
+                    } //else adapter.log.info('Sentry not available/activated');
+                } //else adapter.log.info('Sentry not available');
+            } else if (mType == 'warn') {
                 if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
@@ -467,5 +486,6 @@ module.exports = {
     deleteEverything: deleteEverything,
     version: version,
     path: path,
-    sleep: sleep
+    sleep: sleep,
+    sendVersionInfo: sendVersionInfo
 };
