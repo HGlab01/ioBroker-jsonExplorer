@@ -36,6 +36,11 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### 0.1.14 (2023-10-08)
+* (HGlab01) add versionInfo
+* (HGlab01) add modify-methods 'toFloat' and 'toInteger'
+* (DutchmanNL) couple of code improvements
+
 ### 0.1.13 (2023-10-03)
 * (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
 
@@ -51,9 +56,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 ### 0.1.10 (2022-12-04)
 * (HGlab01) setLastStartTime() optimized
 * (HGlab01) Logs improved
-
-### 0.1.9 (2022-02-15)
-* (HGlab01) js-controller 4.0 readiness
 
 ## License
 MIT License

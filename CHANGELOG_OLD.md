@@ -1,4 +1,7 @@
 # Older changes
+## 0.1.9 (2022-02-15)
+* (HGlab01) js-controller 4.0 readiness
+
 ## 0.1.8 (2021-11-25)
 * (HGlab01) save 'warnMessages'-array as file to reimport after restart of adapter
 
