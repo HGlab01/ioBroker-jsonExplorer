@@ -275,23 +275,23 @@ async function stateSetCreate(objName, name, value) {
             common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
         }
         
-        let objectDefiniton = {};
+        let objectDefinition = {};
         if (!adapter.createdStatesDetails[objName]) {
-            objectDefiniton = await adapter.getObjectAsync(objName);
-            if (objectDefiniton && objectDefiniton.common) objectDefiniton = objectDefiniton.common;
+            objectDefinition = await adapter.getObjectAsync(objName);
+            if (objectDefinition && objectDefinition.common) objectDefinition = objectDefinition.common;
         }
-        else objectDefiniton = adapter.createdStatesDetails[objName];
+        else objectDefinition = adapter.createdStatesDetails[objName];
 
-        if (!objectDefiniton
-            || common.name !== objectDefiniton.name
-            || common.type !== objectDefiniton.type
-            || common.role !== objectDefiniton.role
-            || common.read !== objectDefiniton.read
-            || common.unit !== objectDefiniton.unit
-            || common.write !== objectDefiniton.write
-            || common.states !== objectDefiniton.states
-            || common.modify !== objectDefiniton.modify) {
-            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}' instead of '${JSON.stringify(objectDefiniton)}'`);
+        if (!objectDefinition
+            || common.name !== objectDefinition.name
+            || common.type !== objectDefinition.type
+            || common.role !== objectDefinition.role
+            || common.read !== objectDefinition.read
+            || common.unit !== objectDefinition.unit
+            || common.write !== objectDefinition.write
+            || common.states !== objectDefinition.states
+            || common.modify !== objectDefinition.modify) {
+            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}' instead of '${JSON.stringify(objectDefinition)}'`);
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common
