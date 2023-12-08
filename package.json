@@ -1,6 +1,6 @@
 {
   "name": "iobroker-jsonexplorer",
-  "version": "0.1.14",
+  "version": "0.1.15-alpha.0",
   "description": "Creates ioBroker states based on a json-object",
   "main": "jsonExplorer.js",
   "scripts": {
