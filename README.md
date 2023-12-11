@@ -36,7 +36,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### 0.1.15-alpha.0 (2023-12-08)
+### 0.1.15 (2023-12-11)
 * (HGlab01) fix coding-typo
 
 ### 0.1.14 (2023-10-08)
