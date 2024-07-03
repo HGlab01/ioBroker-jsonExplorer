@@ -36,6 +36,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### __WORK IN PROGRESS__
+* (HGlab01) fix "deleteDevice" is deprecated and will be removed in js-controller 7
+
 ### 0.1.15 (2023-12-11)
 * (HGlab01) fix coding-typo
 

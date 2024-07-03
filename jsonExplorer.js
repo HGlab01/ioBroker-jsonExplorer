@@ -274,7 +274,7 @@ async function stateSetCreate(objName, name, value) {
         if (stateAttr[name] != null && stateAttr[name].states != null) {
             common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
         }
-        
+
         let objectDefinition = {};
         if (!adapter.createdStatesDetails[objName]) {
             objectDefinition = await adapter.getObjectAsync(objName);
@@ -478,10 +478,8 @@ async function setLastStartTime() {
  * @param {string} devicename devicename (not the whole path) to be deleted
  */
 async function deleteEverything(devicename) {
-    await adapter.deleteDeviceAsync(devicename);
-    let states = await adapter.getStatesAsync(`${devicename}.*`);
-    for (const idS in states) {
-        await adapter.delObjectAsync(idS);
+    if (adapter.supportsFeature && adapter.supportsFeature('ADAPTER_DEL_OBJECT_RECURSIVE')) {
+        await adapter.delObjectAsync(devicename, { recursive: true });
     }
 }
 
