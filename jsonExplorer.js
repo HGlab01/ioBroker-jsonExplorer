@@ -484,6 +484,21 @@ async function deleteEverything(devicename) {
 }
 
 /**
+ * Delete all states with value NULL
+ * @param {string} statePath statePath to be checked; e.g. 'marketprice.\*Threshold.\*'
+ */
+async function deleteObjectsWithNull(statePath) {
+    let statesToDelete = await adapter.getStatesAsync(statePath);
+    for (const idS in statesToDelete) {
+        let state = await adapter.getStateAsync(idS);
+        if (state != null && state.val == null) {
+            adapter.log.debug(`State "${idS}" will be deleted`);
+            await adapter.delObjectAsync(idS);
+        }
+    }
+}
+
+/**
 * @param {number} ms
 */
 function sleep(ms) {
@@ -501,5 +516,6 @@ module.exports = {
     version: version,
     path: path,
     sleep: sleep,
-    sendVersionInfo: sendVersionInfo
+    sendVersionInfo: sendVersionInfo,
+    deleteObjectsWithNull: deleteObjectsWithNull
 };
