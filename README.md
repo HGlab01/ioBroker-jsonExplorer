@@ -36,8 +36,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### __WORK IN PROGRESS__
+### 0.1.16-alpha.0 (2024-07-04)
 * (HGlab01) fix "deleteDevice" is deprecated and will be removed in js-controller 7
+* (HGlab01) add function deleteObjectsWithNull()
 
 ### 0.1.15 (2023-12-11)
 * (HGlab01) fix coding-typo
@@ -52,12 +53,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ### 0.1.12 (2023-07-03)
 * (HGlab01) Improve statename verification
-
-### 0.1.11 (2023-04-12)
-* (HGlab01) Improve stateSetCreate
-* (HGlab01) no longer support for state expire
-* (HGlab01) TraverseJson() --> traverseJson()
-* (HGlab01) provide sleep()
 
 ## License
 MIT License

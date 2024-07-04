@@ -1,4 +1,10 @@
 # Older changes
+## 0.1.11 (2023-04-12)
+* (HGlab01) Improve stateSetCreate
+* (HGlab01) no longer support for state expire
+* (HGlab01) TraverseJson() --> traverseJson()
+* (HGlab01) provide sleep()
+
 ## 0.1.10 (2022-12-04)
 * (HGlab01) setLastStartTime() optimized
 * (HGlab01) Logs improved
