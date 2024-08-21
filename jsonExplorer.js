@@ -141,7 +141,7 @@ function traverseJson(jObject, parent = null, replaceName = false, replaceID = f
 /**
  * Analysis modify element in stateAttr.js and executes command
  * @param {string} method defines the method to be executed (e.g. round())
- * @param {string | number} value value to be executed 
+ * @param {string | number} value value to be executed
 */
 function modify(method, value) {
     adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
