@@ -25,6 +25,6 @@
   "dependencies": {},
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
-    "eslint": "^9.9.1"
+    "eslint": "^9.16.0"
   }
 }
