@@ -319,7 +319,7 @@ async function stateSetCreate(objName, name, value) {
                 }
             }
             adapter.log.silly(`State "${objName}" set with value "${value}`);
-            await adapter.setStateAsync(objName, {
+            await adapter.setStateChangeAsync(objName, {
                 val: value,
                 ack: true
             });
