@@ -4,7 +4,7 @@
   "description": "Creates ioBroker states based on a json-object",
   "main": "jsonExplorer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha jsonExplorer.test.js",
     "release": "release-script"
   },
   "repository": {
@@ -22,9 +22,11 @@
     "url": "https://github.com/HGlab01/ioBroker-jsonExplorer/issues"
   },
   "homepage": "https://github.com/HGlab01/ioBroker-jsonExplorer#readme",
-  "dependencies": {},
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
-    "eslint": "^9.35.0"
+    "chai": "^6.0.1",
+    "eslint": "^9.35.0",
+    "mocha": "^11.7.2",
+    "sinon": "^21.0.0"
   }
 }
