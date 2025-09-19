@@ -15,180 +15,204 @@ function init(adapterOrigin, stateAttribute) {
     adapter = adapterOrigin;
     adapter.createdStatesDetails = {};
     stateAttr = stateAttribute;
+    adapter.subscribedStates = new Set();
 }
 
-/**
- * @deprecated Since version 0.1.11 Will be deleted in version 0.1.12 Use traverseJson() instead.
- */
-// eslint-disable-next-line no-unused-vars
-function TraverseJson(jObject, parent = null, replaceName = false, replaceID = false, state_expire = 0, level = 0) {
-    traverseJson(jObject, parent, replaceName, replaceID, level);
-}
 
 /**
- * Traeverses the json-object and provides all information for creating/updating states
- * @param {object} jObject Json-object to be added as states
- * @param {string | null} parent Defines the parent object in the state tree; default=root
- * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel); default=false
- * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel); default=false;
- * @param {number} state_expire expire time for the current setState in seconds; default is no expire
- * @param {number} level level 0 starts with device, level 1 starts with channel, level 3 starts without device & channel
+ * Traverses the json-object and provides all information for creating/updating states.
+ * @param {object} jObject JSON object to be added as states.
+ * @param {string | null} [parent=null] Defines the parent object in the state tree.
+ * @param {boolean} [replaceName=false] If true, uses the 'name' property from a child object as the name for the structure element (channel).
+ * @param {boolean} [replaceID=false] If true, uses the 'id' property from a child object as the ID for the structure element (channel).
+ * @param {number} [level=0] The current depth in the JSON structure, used to determine object type (0: device, 1: channel, >1: folder).
  */
 function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
-    let id = null;
-    let value = null;
-    let name = '';
-
-    if (parent != null) {
+    if (parent) {
         parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
     }
     try {
-        if (parent != null && level == 0) {
-            if (replaceName) {
-                name = jObject.name ? jObject.name : '';
-            }
+        // Create a device/channel/folder for the parent object of this level.
+        if (parent) {
+            const objectType = getObjectType(level);
+            const parentName = (replaceName && jObject.name) || '';
             adapter.setObjectAsync(parent, {
-                'type': 'device',
-                'common': {
-                    'name': name,
-                },
-                'native': {},
+                type: objectType,
+                common: { name: parentName },
+                native: {},
             });
-            level = level + 1;
-        } else if (parent != null && level == 1) {
-            if (replaceName) {
-                name = jObject.name ? jObject.name : '';
-            }
-            adapter.setObjectAsync(parent, {
-                'type': 'channel',
-                'common': {
-                    'name': name,
-                },
-                'native': {},
-            });
-            level = level + 1;
+            level++;
         }
 
-        for (let i in jObject) {
-            name = i;
-            if (!!jObject[i] && typeof (jObject[i]) == 'object' && String(jObject[i]).includes('[object Object]')) {
-                adapter.log.silly(`Traverse object '${name}' with value '${jObject[i]}' and type '${typeof (jObject[i])}'`);
-                if (parent == null) {
-                    id = i;
-                    if (replaceName) {
-                        if (jObject[i].name) name = jObject[i].name;
-                    }
-                    if (replaceID) {
-                        if (jObject[i].id || jObject[i].id == 0) id = jObject[i].id;
-                    }
-                } else {
-                    id = parent + '.' + i;
-                    if (replaceName) {
-                        if (jObject[i].name) name = jObject[i].name;
-                    }
-                    if (replaceID) {
-                        if (jObject[i].id || jObject[i].id == 0) id = parent + '.' + jObject[i].id;
-                    }
-                }
-                id = id.replace(adapter.FORBIDDEN_CHARS, '_');
-                // Avoid channel creation for empty arrays/objects
-                if (Object.keys(jObject[i]).length !== 0) {
-                    if (level == 0) {
-                        adapter.setObjectAsync(id, {
-                            'type': 'device',
-                            'common': {
-                                'name': name,
-                            },
-                            'native': {},
-                        });
-                    } else if (level == 1) {
-                        adapter.setObjectAsync(id, {
-                            'type': 'channel',
-                            'common': {
-                                'name': name,
-                            },
-                            'native': {},
-                        });
-                    }
-                    traverseJson(jObject[i], id, replaceName, replaceID, level + 1);
-                } else {
-                    adapter.log.silly('State ' + id + ' received with empty array, ignore channel creation');
-                }
+        for (const key in jObject) {
+            const currentValue = jObject[key];
+            if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)) {
+                handleObject(key, currentValue, parent, replaceName, replaceID, level);
+            } else if (Array.isArray(currentValue)) {
+                handleArray(key, currentValue, parent, replaceName, replaceID, level);
             } else {
-                adapter.log.silly(`Write state '${name}' with value '${jObject[i]}' and type '${typeof (jObject[i])}'`);
-                value = jObject[i];
-                if (parent == null) {
-                    id = i;
-                } else {
-                    id = parent + '.' + i;
-                }
-                if (typeof (jObject[i]) == 'object' && value != null) value = JSON.stringify(value);
-                //avoid state creation if empty
-                if (value != '[]') {
-                    adapter.log.silly('create id ' + id + ' with value ' + value + ' and name ' + name);
-                    stateSetCreate(id, name, value);
-                }
+                const id = parent ? `${parent}.${key}` : key;
+                createLeafState(id, key, currentValue);
             }
         }
     } catch (error) {
-        const eMsg = `Error in function traverseJson(): ${error}`;
-        adapter.log.error(eMsg);
-        console.error(eMsg);
+        const errorMessage = `Error in function traverseJson(): ${error}`;
+        adapter.log.error(errorMessage);
+        console.error(errorMessage);
         sendSentry(error);
     }
 }
 
+
 /**
- * Analysis modify element in stateAttr.js and executes command
- * @param {string} method defines the method to be executed (e.g. round())
- * @param {string | number} value value to be executed
+ * Determines the ioBroker object type based on the traversal level.
+ * @param {number} level The current depth in the JSON structure.
+ * @returns {string} The type of the object ('device', 'channel', or 'folder').
+ */
+function getObjectType(level) {
+    if (level === 0) return 'device';
+    if (level === 1) return 'channel';
+    return 'folder';
+}
+
+/**
+ * Creates a leaf state in ioBroker for primitive values or stringified arrays/objects.
+ * @param {string} id The ID of the state.
+ * @param {string} name The name of the state.
+ * @param {any} value The value to set.
+ */
+function createLeafState(id, name, value) {
+    let finalValue = value;
+    // Stringify objects/arrays that are not traversed recursively.
+    if (finalValue !== null && typeof finalValue === 'object') {
+        finalValue = JSON.stringify(finalValue);
+    }
+
+    // Avoid creating states for empty stringified arrays.
+    if (finalValue !== '[]') {
+        adapter.log.silly(`create id '${id}' with value '${finalValue}' and name '${name}'`);
+        stateSetCreate(id, name, finalValue);
+    }
+}
+
+/**
+ * Handles the traversal of an object property.
+ * @param {string} key The object key.
+ * @param {object} currentValue The object value.
+ * @param {string|null} parent The parent ID.
+ * @param {boolean} replaceName Flag to replace the name.
+ * @param {boolean} replaceID Flag to replace the ID.
+ * @param {number} level The current traversal level.
+ */
+function handleObject(key, currentValue, parent, replaceName, replaceID, level) {
+    adapter.log.silly(`Traverse object '${key}' with value '${currentValue}' and type '${typeof currentValue}'`);
+
+    let id;
+    if (replaceID && currentValue.id != null) {
+        id = parent ? `${parent}.${currentValue.id}` : String(currentValue.id);
+    } else {
+        id = parent ? `${parent}.${key}` : key;
+    }
+
+    let name = (replaceName && currentValue.name) || key;
+
+    id = id.replace(adapter.FORBIDDEN_CHARS, '_');
+
+    // Avoid channel creation for empty objects.
+    if (Object.keys(currentValue).length > 0) {
+        const objectType = getObjectType(level);
+        adapter.setObjectAsync(id, {
+            type: objectType,
+            common: { name },
+            native: {},
+        });
+        traverseJson(currentValue, id, replaceName, replaceID, level + 1);
+    } else {
+        adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
+    }
+}
+
+/**
+ * Handles the traversal of an array property.
+ * @param {string} key The object key.
+ * @param {Array} currentValue The array value.
+ * @param {string|null} parent The parent ID.
+ * @param {boolean} replaceName Flag to replace the name.
+ * @param {boolean} replaceID Flag to replace the ID.
+ * @param {number} level The current traversal level.
+ */
+function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
+    adapter.log.silly(`Traverse array '${key}' with length ${currentValue.length}`);
+
+    // If array contains objects, traverse each item. Otherwise, store as a single JSON string.
+    if (currentValue.some(item => typeof item === 'object' && item !== null)) {
+        currentValue.forEach((item, index) => {
+            const id = parent ? `${parent}.${key}.${index}` : `${key}.${index}`;
+            if (typeof item === 'object' && item !== null) {
+                traverseJson(item, id, replaceName, replaceID, level + 1);
+            } else {
+                createLeafState(id, String(index), item);
+            }
+        });
+    } else {
+        const id = parent ? `${parent}.${key}` : key;
+        createLeafState(id, key, currentValue);
+    }
+}
+
+
+/**
+ * Analyzes the modify element in stateAttr.js and executes the command.
+ * @param {string} method Defines the method to be executed (e.g., "round(2)").
+ * @param {string | number} value The value to be modified.
+ * @returns {any} The modified value.
 */
 function modify(method, value) {
     adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
-    let result = null;
     try {
-        if (method.match(/^custom:/gi) != null) {                               //check if starts with "custom:"
-            value = eval(method.replace(/^custom:/gi, ''));                     //get value without "custom:"
-        } else if (method.match(/^multiply\(/gi) != null) {                     //check if starts with "multiply("
-            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = parseFloat(value) * inBracket;
-        } else if (method.match(/^divide\(/gi) != null) {                       //check if starts with "divide("
-            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = parseFloat(value) / inBracket;
-        } else if (method.match(/^round\(/gi) != null) {                        //check if starts with "round("
-            const inBracket = parseInt(method.match(/(?<=\()(.*?)(?=\))/g));      //get value in brackets
-            value = Math.round(parseFloat(value) * Math.pow(10, inBracket)) / Math.pow(10, inBracket);
-        } else if (method.match(/^add\(/gi) != null) {                          //check if starts with "add("
-            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = parseFloat(value) + inBracket;
-        } else if (method.match(/^substract\(/gi) != null) {                    //check if starts with "substract("
-            const inBracket = parseFloat(method.match(/(?<=\()(.*?)(?=\))/g));    //get value in brackets
-            value = parseFloat(value) - inBracket;
+        if (method.startsWith('custom:')) {
+            return eval(method.substring(7));
         }
-        else {
-            const methodUC = method.toUpperCase();
-            switch (methodUC) {
-                case 'UPPERCASE':
-                    if (typeof value == 'string') result = value.toUpperCase();
-                    break;
-                case 'LOWERCASE':
-                    if (typeof value == 'string') result = value.toLowerCase();
-                    break;
-                case 'UCFIRST':
-                    if (typeof value == 'string') result = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
-                    break;
-                case 'TOINTEGER':
-                    result = parseInt(value);
-                    break;
-                case 'TOFLOAT':
-                    result = parseFloat(value);
-                    break;
-                default:
-                    result = value;
+
+        // Process methods with arguments like "round(2)".
+        const match = method.match(/^(\w+)\((.*)\)$/);
+        if (match) {
+            const operation = match[1].toLowerCase();
+            const arg = match[2];
+
+            switch (operation) {
+                case 'multiply':
+                    return parseFloat(value) * parseFloat(arg);
+                case 'divide':
+                    return parseFloat(value) / parseFloat(arg);
+                case 'round': {
+                    const decimals = parseInt(arg, 10);
+                    const factor = Math.pow(10, decimals);
+                    return Math.round(parseFloat(value) * factor) / factor;
+                }
+                case 'add':
+                    return parseFloat(value) + parseFloat(arg);
+                case 'substract': // Note: Typo for "subtract" is kept for compatibility reasons.
+                    return parseFloat(value) - parseFloat(arg);
             }
         }
-        if (!result) return value;
-        return result;
+
+        // Process methods without arguments.
+        switch (method.toUpperCase()) {
+            case 'UPPERCASE':
+                return typeof value === 'string' ? value.toUpperCase() : value;
+            case 'LOWERCASE':
+                return typeof value === 'string' ? value.toLowerCase() : value;
+            case 'UCFIRST':
+                if (typeof value !== 'string' || !value) return value;
+                return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+            case 'TOINTEGER':
+                return parseInt(value, 10);
+            case 'TOFLOAT':
+                return parseFloat(value);
+            default:
+                return value;
+        }
     } catch (error) {
         const eMsg = `Error in function modify for method ${method} and value ${value}: ${error}`;
         adapter.log.error(eMsg);
@@ -198,6 +222,10 @@ function modify(method, value) {
     }
 }
 
+/**
+ * Saves warning messages to a file.
+ * @param {object} warnMessages The warning messages object to save.
+ */
 function saveWarnMessages(warnMessages) {
     try {
         fs.writeFileSync(`./warnMessages.json`, JSON.stringify(warnMessages), 'utf8');
@@ -206,6 +234,9 @@ function saveWarnMessages(warnMessages) {
     }
 }
 
+/**
+ * Reads warning messages from a file and loads them into memory.
+ */
 function readWarnMessages() {
     try {
         const data = fs.readFileSync(`./warnMessages.json`, 'utf8');
@@ -215,6 +246,10 @@ function readWarnMessages() {
     }
 }
 
+/**
+ * Sends adapter version information to Sentry if it has changed.
+ * @param {string} versionInfo The current version of the adapter.
+ */
 function sendVersionInfo(versionInfo) {
     let oldVersionInfoSentry = warnMessages['versionInfoSentry'];
     let versionInfoSentry = `Adapter was started in version ${versionInfo}`;
@@ -234,123 +269,127 @@ function sendVersionInfo(versionInfo) {
  * @param {any} value Value of the state
  */
 async function stateSetCreate(objName, name, value) {
-    adapter.log.silly(`Create_state called for '${objName}' with value '${value}'`);
-    let objNameOrigin = objName;
-    objName = objName.replace(adapter.FORBIDDEN_CHARS, '_');
-    if (objNameOrigin != objName) adapter.log.info(`Object name '${objNameOrigin}' renamed to '${objName}'`);
-
+    adapter.log.silly(`stateSetCreate called for '${objName}' with value '${value}'`);
     try {
-        if (stateAttr[name] && stateAttr[name].blacklist == true) {
-            adapter.log.silly(`Name '${name}' on blacklist. Skip!`);
+        // Get attributes from stateAttr library, or an empty object if not defined.
+        const attr = stateAttr[name] || {};
+
+        // If the state is on the blacklist, skip creation.
+        if (attr.blacklist === true) {
+            adapter.log.silly(`Name '${name}' is on the blacklist. Skipping.`);
             return;
         }
-        // Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
-        const common = {};
-        common.modify = {};
+
+        // Sanitize object name by replacing forbidden characters.
+        const originalObjName = objName;
+        objName = objName.replace(adapter.FORBIDDEN_CHARS, '_');
+        if (originalObjName !== objName) {
+            adapter.log.info(`Object name '${originalObjName}' was sanitized to '${objName}'`);
+        }
+
+        // If state attribute is missing, log a warning once.
         if (!stateAttr[name]) {
-            let newWarnMessage = `State attribute definition missing for '${name}' with value '${value}' and type of value '${typeof (value)}'`;
-            if (warnMessages[name] == undefined) {
+            const newWarnMessage = `State attribute definition missing for '${name}' with value '${value}' (type: ${typeof value})`;
+            if (warnMessages[name] === undefined) {
                 warnMessages[name] = newWarnMessage;
                 saveWarnMessages(warnMessages);
-                // Send information to Sentry
+                // Send information to Sentry for monitoring.
                 sendSentry(newWarnMessage, 'warn', name);
-                adapter.log.silly('Message sent for ' + warnMessages[name]);
+                adapter.log.silly(`Warning message sent for '${name}'`);
             }
         }
-        common.name = stateAttr[name] !== undefined ? stateAttr[name].name || name : name;
-        common.type = stateAttr[name] !== undefined ? stateAttr[name].type || typeof (value) : typeof (value);
-        common.role = stateAttr[name] !== undefined ? stateAttr[name].role || 'state' : 'state';
-        common.read = true;
-        //common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
-        common.write = stateAttr[name] !== undefined ? stateAttr[name].write || false : false;
-        //common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
-        common.modify = stateAttr[name] !== undefined ? stateAttr[name].modify || '' : '';
+
+        // Construct the 'common' object for the state definition.
+        const common = {
+            name: attr.name || name,
+            type: attr.type || typeof value,
+            role: attr.role || 'state',
+            read: true,
+            write: !!attr.write, // Ensure boolean value
+            modify: attr.modify || '',
+            // Conditionally add unit and states if they are defined in attributes.
+            ...(attr.unit != null && { unit: attr.unit }),
+            ...(attr.states != null && { states: attr.states }),
+        };
         adapter.log.silly(`MODIFY to ${name}: ${JSON.stringify(common.modify)}`);
 
-        // Only add values for unit, modify and states if needed
-        if (stateAttr[name] != null && stateAttr[name].unit != null) {
-            common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
-        }
-        if (stateAttr[name] != null && stateAttr[name].states != null) {
-            common.states = stateAttr[name] !== undefined ? stateAttr[name].states || null : null;
+        // Get the existing object definition, from cache or from ioBroker objects DB.
+        let existingObjectDefinition = adapter.createdStatesDetails[objName];
+        if (!existingObjectDefinition) {
+            const obj = await adapter.getObjectAsync(objName);
+            existingObjectDefinition = obj ? obj.common : undefined;
         }
 
-        let objectDefinition = {};
-        if (!adapter.createdStatesDetails[objName]) {
-            objectDefinition = await adapter.getObjectAsync(objName);
-            if (objectDefinition && objectDefinition.common) objectDefinition = objectDefinition.common;
-        }
-        else objectDefinition = adapter.createdStatesDetails[objName];
+        // Compare the new common object with the existing one to avoid unnecessary updates.
+        // For objects and arrays (states, modify), a stringify comparison is used.
+        const needsUpdate = !existingObjectDefinition ||
+            common.name !== existingObjectDefinition.name ||
+            common.type !== existingObjectDefinition.type ||
+            common.role !== existingObjectDefinition.role ||
+            common.read !== existingObjectDefinition.read ||
+            (common.unit || '') !== (existingObjectDefinition.unit || '') ||
+            !!common.write !== !!existingObjectDefinition.write ||
+            JSON.stringify(common.states) !== JSON.stringify(existingObjectDefinition.states) ||
+            JSON.stringify(common.modify) !== JSON.stringify(existingObjectDefinition.modify);
 
-        if (!objectDefinition
-            || common.name !== objectDefinition.name
-            || common.type !== objectDefinition.type
-            || common.role !== objectDefinition.role
-            || common.read !== objectDefinition.read
-            || common.unit !== objectDefinition.unit
-            || common.write !== objectDefinition.write
-            || common.states !== objectDefinition.states
-            || common.modify !== objectDefinition.modify) {
-            adapter.log.silly(`Attribute definition changed for '${objName}' with '${JSON.stringify(common)}' instead of '${JSON.stringify(objectDefinition)}'`);
+        if (needsUpdate) {
+            adapter.log.silly(`Object definition for '${objName}' requires update. New: ${JSON.stringify(common)}, Old: ${JSON.stringify(existingObjectDefinition)}`);
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
-                common
+                common,
             });
-
-        } else {
-            // console.log(`Nothing changed do not update object`);
         }
 
-        // Store current object definition to memory
+        // Cache the new object definition to reduce future getObjectAsync calls.
         adapter.createdStatesDetails[objName] = common;
 
-        // Set value to state
+        // Set the state's value if it's provided.
         if (value !== undefined) {
-            //adapter.log.info('Common.mofiy: ' + JSON.stringify(common.modify));
-            if (common.modify != '' && typeof common.modify == 'string') {
-                adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${common.modify}"`);
-                value = modify(common.modify, value);
-                adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${common.modify}"`);
-            } else if (typeof common.modify == 'object') {
-                for (let i of common.modify) {
-                    adapter.log.silly(`Value "${value}" for name "${objName}" before function modify with method "${i}"`);
-                    value = modify(i, value);
-                    adapter.log.silly(`Value "${value}" for name "${objName}" after function modify with method "${i}"`);
+            let modifiedValue = value;
+
+            // Apply value modifications if defined in attributes.
+            if (common.modify) {
+                const modifiers = Array.isArray(common.modify) ? common.modify : [common.modify];
+                for (const mod of modifiers) {
+                    if (mod) { // Ensure modifier is not an empty string
+                        adapter.log.silly(`Applying modifier "${mod}" to value "${modifiedValue}" for state "${objName}"`);
+                        modifiedValue = modify(mod, modifiedValue);
+                        adapter.log.silly(`Value after modification: "${modifiedValue}"`);
+                    }
                 }
             }
-            adapter.log.silly(`State "${objName}" set with value "${value}`);
-            await adapter.setStateAsync(objName, {
-                val: value,
-                ack: true
-            });
+
+            adapter.log.silly(`Setting state "${objName}" to "${modifiedValue}"`);
+            await adapter.setStateAsync(objName, { val: modifiedValue, ack: true });
         }
 
-        // Timer to set online state to FALSE when not updated
-        if (name === 'online' && adapter.executioninterval != undefined) {
-            // Clear running timer
+        // If the state is 'online', set a timer to mark it as offline if not updated.
+        if (name === 'online' && adapter.executioninterval != null) {
+            // Clear any existing timer for this state.
             if (stateExpire[objName]) {
                 clearTimeout(stateExpire[objName]);
-                stateExpire[objName] = null;
             }
 
-            // timer
+            // Set a new timer.
+            const expireTime = adapter.executioninterval * 1000 + 5000;
             stateExpire[objName] = setTimeout(async () => {
-                await adapter.setStateAsync(objName, {
-                    val: false,
-                    ack: true,
-                });
-                adapter.log.info('Online state expired for ' + objName);
-            }, adapter.executioninterval * 1000 + 5000);
-            adapter.log.silly('Expire time set for state : ' + name + ' with time in seconds : ' + (adapter.executioninterval + 5));
+                await adapter.setStateAsync(objName, { val: false, ack: true });
+                adapter.log.info(`Online state for '${objName}' expired.`);
+            }, expireTime);
+            adapter.log.silly(`Expire timer set for state '${objName}' in ${expireTime / 1000} seconds.`);
         }
 
-        // Subscribe on state changes if writable
-        common.write && adapter.subscribeStates(objName);
+        // Subscribe to state changes if the state is writable.
+        //TODO: Subscriben nur einmal! Checken ob bereits subsribed
+        subscribeIfNecessary(common, objName);
+        /*if (common.write) {
+            adapter.subscribeStates(objName);
+        }*/
 
     } catch (error) {
-        let eMsg = `Error in function stateSetCreate(): ${error}`;
-        adapter.log.error(eMsg);
-        console.error(eMsg);
+        const errorMessage = `Error in function stateSetCreate() for '${objName}': ${error}`;
+        adapter.log.error(errorMessage);
+        console.error(errorMessage);
         sendSentry(error);
     }
 }
@@ -421,30 +460,21 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
 async function checkExpire(searchpattern) {
     try {
         adapter.log.debug('checkExpire() searchpattern is ' + searchpattern);
-        await sleep(100);
-        let state = await adapter.getStateAsync('online');
-        let onlineTs = 0;
-        if (state) {
-            if (state.val == true) {
-                onlineTs = state.ts;
-            } else {
-                adapter.log.error('Adapter is offline. Aborting checkExpire...');
-                return;
-            }
-        } else {
-            adapter.log.error(`Attribute 'online' not found. Aborting checkExpire...`);
+
+        const onlineState = await adapter.getStateAsync('online');
+
+        if (!onlineState || !onlineState.val) {
+            adapter.log.error(`Adapter is offline or attribute 'online' not found. Aborting checkExpire...`);
             return;
         }
-
-        let states = await adapter.getStatesAsync(searchpattern);
-        for (let idS in states) {
-            state = await adapter.getStateAsync(idS);
-            adapter.log.silly(idS + ': ' + state);
+        const onlineTs = onlineState.ts;
+        const states = await adapter.getStatesAsync(searchpattern);
+        for (const idS in states) {
+            const state = states[idS]; // states enthält bereits die Zustände, kein weiterer getStateAsync nötig!
             if (state && state.val != null) {
-                let stateTs = state.ts;
-                let dif = onlineTs - stateTs;
-                adapter.log.silly(`${idS}: ${stateTs} | ${onlineTs} | ${dif}`);
-                if ((onlineTs - stateTs) > 0) {
+                adapter.log.silly(`${idS}: ${state.ts} | ${onlineTs} | ${onlineTs - state.ts}`);
+
+                if (onlineTs > state.ts) {
                     await adapter.setStateAsync(idS, null, true);
                     adapter.log.debug(`checkExpire() sets state ${idS} to null`);
                 }
@@ -452,9 +482,9 @@ async function checkExpire(searchpattern) {
         }
         adapter.log.debug('checkExpire() done');
     } catch (error) {
-        let eMsg = `Error in function checkExpire(): ${error}`;
-        adapter.log.error(eMsg);
-        console.error(eMsg);
+        const errorMessage = `Error in function checkExpire(): ${error}`;
+        adapter.log.error(errorMessage);
+        console.error(errorMessage);
         sendSentry(error);
     }
 }
@@ -505,8 +535,26 @@ function sleep(ms) {
     return /** @type {Promise<void>} */(new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
 }
 
+/**
+ * Subscribes to a state if it is writable and not already subscribed.
+ *
+ * @param {Object} common - The common object containing state properties.
+ * @param {boolean} common.write - Indicates if the state is writable.
+ * @param {string} objName - The name of the state to subscribe to.
+ */
+function subscribeIfNecessary(common, objName) {
+    if (common.write) {
+        if (!adapter.subscribedStates.has(objName)) {
+            adapter.subscribeStates(objName);
+            adapter.subscribedStates.add(objName);
+            adapter.log.silly(`Successfully subscribed to state: ${objName}`);
+        } else {
+            adapter.log.silly(`State already subscribed, skipping: ${objName}`);
+        }
+    }
+}
+
 module.exports = {
-    TraverseJson: TraverseJson,
     traverseJson: traverseJson,
     stateSetCreate: stateSetCreate,
     checkExpire: checkExpire,
