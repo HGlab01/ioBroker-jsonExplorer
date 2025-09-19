@@ -165,6 +165,7 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
  * Analyzes the modify element in stateAttr.js and executes the command.
  * @param {string} method Defines the method to be executed (e.g., "round(2)").
  * @param {string | number} value The value to be modified.
+ * @returns {any} The modified value.
 */
 function modify(method, value) {
     adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
@@ -221,6 +222,10 @@ function modify(method, value) {
     }
 }
 
+/**
+ * Saves warning messages to a file.
+ * @param {object} warnMessages The warning messages object to save.
+ */
 function saveWarnMessages(warnMessages) {
     try {
         fs.writeFileSync(`./warnMessages.json`, JSON.stringify(warnMessages), 'utf8');
@@ -229,6 +234,9 @@ function saveWarnMessages(warnMessages) {
     }
 }
 
+/**
+ * Reads warning messages from a file and loads them into memory.
+ */
 function readWarnMessages() {
     try {
         const data = fs.readFileSync(`./warnMessages.json`, 'utf8');
@@ -238,6 +246,10 @@ function readWarnMessages() {
     }
 }
 
+/**
+ * Sends adapter version information to Sentry if it has changed.
+ * @param {string} versionInfo The current version of the adapter.
+ */
 function sendVersionInfo(versionInfo) {
     let oldVersionInfoSentry = warnMessages['versionInfoSentry'];
     let versionInfoSentry = `Adapter was started in version ${versionInfo}`;

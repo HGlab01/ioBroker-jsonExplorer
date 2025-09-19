@@ -26,7 +26,7 @@ replaceName: true|false; if true, the description of a channel will be replaced 
 replaceID: true|false; if true, the description of a channel will be replaced by the id of a leaf-state if available (search for a state with id "id")
 
 ### Expire management (optional)
-All states can be monitored and set to NULL if it is not updated in the last run by calling `jsonExplorer.setLastStartTime()` before calling `jsonExplorer.traverseJson()` and `jsonExplorer.checkExpire('*')` after caling `JsonExplorer.TraverseJson()`
+All states can be monitored and set to NULL if it is not updated in the last run by calling `jsonExplorer.setLastStartTime()` before calling `jsonExplorer.traverseJson()` and `jsonExplorer.checkExpire('*')` after caling `JsonExplorer.traverseJson()`
 
 ### Reference implementation
 https://github.com/HGlab01/ioBroker.fuelpricemonitor
@@ -36,6 +36,10 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### 0.2.0-alpha.0 (2025-09-19)
+* (HGlab01) refactorings
+* (HGlab01) remove deprecated TraverseJson() function
+
 ### 0.1.16 (2024-07-04)
 * (HGlab01) fix "deleteDevice" is deprecated and will be removed in js-controller 7
 * (HGlab01) add function deleteObjectsWithNull()
@@ -50,9 +54,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ### 0.1.13 (2023-10-03)
 * (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
-
-### 0.1.12 (2023-07-03)
-* (HGlab01) Improve statename verification
 
 ## License
 MIT License

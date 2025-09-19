@@ -1,4 +1,7 @@
 # Older changes
+## 0.1.12 (2023-07-03)
+* (HGlab01) Improve statename verification
+
 ## 0.1.11 (2023-04-12)
 * (HGlab01) Improve stateSetCreate
 * (HGlab01) no longer support for state expire
