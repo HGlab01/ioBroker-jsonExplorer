@@ -27,16 +27,22 @@ function init(adapterOrigin, stateAttribute) {
  * @param {boolean} [replaceID=false] If true, uses the 'id' property from a child object as the ID for the structure element (channel).
  * @param {number} [level=0] The current depth in the JSON structure, used to determine object type (0: device, 1: channel, >1: folder).
  */
-function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
+async function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
     if (parent) {
         parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
     }
     try {
         // Create a device/channel/folder for the parent object of this level.
         if (parent) {
+            let parentName = '';
+            if (replaceName) {
+                const object = await adapter.getObjectAsync(parent);
+                const  currentName = object?.common?.name;
+                parentName = jObject.name ? jObject.name : currentName || '';
+            }
+
             const objectType = getObjectType(level);
-            const parentName = (replaceName && jObject.name) || '';
-            adapter.setObjectAsync(parent, {
+            adapter.setObject(parent, {
                 type: objectType,
                 common: { name: parentName },
                 native: {},
@@ -113,19 +119,10 @@ function handleObject(key, currentValue, parent, replaceName, replaceID, level) 
     } else {
         id = parent ? `${parent}.${key}` : key;
     }
-
-    let name = (replaceName && currentValue.name) || key;
-
     id = id.replace(adapter.FORBIDDEN_CHARS, '_');
 
     // Avoid channel creation for empty objects.
     if (Object.keys(currentValue).length > 0) {
-        const objectType = getObjectType(level);
-        adapter.setObjectAsync(id, {
-            type: objectType,
-            common: { name },
-            native: {},
-        });
         traverseJson(currentValue, id, replaceName, replaceID, level + 1);
     } else {
         adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
@@ -435,7 +432,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                 if (adapter.supportsFeature && adapter.supportsFeature('PLUGINS')) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
-                        sentryInstance.getSentryObject().captureException(mObject);
+                        sentryInstance.getSentryObject()?.captureException(mObject);
                         adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`);
                     } else {
                         adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
@@ -468,12 +465,12 @@ async function checkExpire(searchpattern) {
             return;
         }
         const onlineTs = onlineState.ts;
+        await sleep(1000);
         const states = await adapter.getStatesAsync(searchpattern);
         for (const idS in states) {
-            const state = states[idS]; // states enthält bereits die Zustände, kein weiterer getStateAsync nötig!
+            const state = states[idS];
             if (state && state.val != null) {
                 adapter.log.silly(`${idS}: ${state.ts} | ${onlineTs} | ${onlineTs - state.ts}`);
-
                 if (onlineTs > state.ts) {
                     await adapter.setStateAsync(idS, null, true);
                     adapter.log.debug(`checkExpire() sets state ${idS} to null`);
@@ -518,10 +515,10 @@ async function deleteEverything(devicename) {
  * @param {string} statePath statePath to be checked; e.g. 'marketprice.\*Threshold.\*'
  */
 async function deleteObjectsWithNull(statePath) {
-    let statesToDelete = await adapter.getStatesAsync(statePath);
+    const statesToDelete = await adapter.getStatesAsync(statePath);
     for (const idS in statesToDelete) {
-        let state = await adapter.getStateAsync(idS);
-        if (state != null && state.val == null) {
+        const state = statesToDelete[idS];
+        if (state && state.val == null) {
             adapter.log.debug(`State "${idS}" will be deleted`);
             await adapter.delObjectAsync(idS);
         }
