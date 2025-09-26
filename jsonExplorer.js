@@ -42,7 +42,7 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
             }
 
             const objectType = getObjectType(level);
-            adapter.setObject(parent, {
+            await adapter.setObjectAsync(parent, {
                 type: objectType,
                 common: { name: parentName },
                 native: {},
@@ -378,11 +378,7 @@ async function stateSetCreate(objName, name, value) {
 
         // Subscribe to state changes if the state is writable.
         //TODO: Subscriben nur einmal! Checken ob bereits subsribed
-        subscribeIfNecessary(common, objName);
-        /*if (common.write) {
-            adapter.subscribeStates(objName);
-        }*/
-
+        subscribeIfNecessary(common.write, objName);
     } catch (error) {
         const errorMessage = `Error in function stateSetCreate() for '${objName}': ${error}`;
         adapter.log.error(errorMessage);
@@ -535,12 +531,11 @@ function sleep(ms) {
 /**
  * Subscribes to a state if it is writable and not already subscribed.
  *
- * @param {Object} common - The common object containing state properties.
- * @param {boolean} common.write - Indicates if the state is writable.
+ * @param {boolean} isWritable - Indicates if the state is writable.
  * @param {string} objName - The name of the state to subscribe to.
  */
-function subscribeIfNecessary(common, objName) {
-    if (common.write) {
+function subscribeIfNecessary(isWritable, objName) {
+    if (isWritable) {
         if (!adapter.subscribedStates.has(objName)) {
             adapter.subscribeStates(objName);
             adapter.subscribedStates.add(objName);
