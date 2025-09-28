@@ -144,14 +144,35 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
     // If array contains objects, traverse each item. Otherwise, store as a single JSON string.
     if (currentValue.some(item => typeof item === 'object' && item !== null)) {
         currentValue.forEach((item, index) => {
-            const id = parent ? `${parent}.${key}.${index}` : `${key}.${index}`;
+            let id;
+            const itemKey = String(index); // Default key for array items is the index
+
             if (typeof item === 'object' && item !== null) {
-                traverseJson(item, id, replaceName, replaceID, level + 1);
+                // Determine the ID: use 'id' attribute if replaceID is true, otherwise use the index.
+                if (replaceID && item.id != null) {
+                    // Use the item's 'id' property for the path (e.g., ...devices.RU2948924928)
+                    id = parent ? `${parent}.${key}.${item.id}` : `${key}.${item.id}`;
+                } else {
+                    // Use the array index for the path (e.g., ...devices.0)
+                    id = parent ? `${parent}.${key}.${itemKey}` : `${key}.${itemKey}`;
+                }
+                // Replace forbidden characters in the generated ID
+                id = id.replace(adapter.FORBIDDEN_CHARS, '_');
+
+                // Recursive call for non-empty objects
+                if (Object.keys(item).length > 0) {
+                    traverseJson(item, id, replaceName, replaceID, level + 1);
+                } else {
+                    adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
+                }
             } else {
-                createLeafState(id, String(index), item);
+                // Handle primitive values within the array (non-objects)
+                id = parent ? `${parent}.${key}.${itemKey}` : `${key}.${itemKey}`;
+                createLeafState(id, itemKey, item);
             }
         });
     } else {
+        // Array contains only primitive values, store as a single JSON string.
         const id = parent ? `${parent}.${key}` : key;
         createLeafState(id, key, currentValue);
     }
