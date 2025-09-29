@@ -3,7 +3,9 @@
 const path = `${__dirname}`;
 const { version } = require('./package.json');
 const fs = require('fs');
-let stateExpire = {}, warnMessages = {}, stateAttr = {};
+let stateExpire = {},
+    warnMessages = {},
+    stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
 /**
@@ -17,7 +19,6 @@ function init(adapterOrigin, stateAttribute) {
     stateAttr = stateAttribute;
     adapter.subscribedStates = new Set();
 }
-
 
 /**
  * Traverses the json-object and provides all information for creating/updating states.
@@ -37,8 +38,7 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
             let parentName = '';
             if (replaceName) {
                 const object = await adapter.getObjectAsync(parent);
-                const  currentName = object?.common?.name;
-                parentName = jObject.name ? jObject.name : currentName || '';
+                parentName = jObject.name ?? object?.common?.name ?? '';
             }
 
             const objectType = getObjectType(level);
@@ -68,7 +68,6 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
         sendSentry(error);
     }
 }
-
 
 /**
  * Determines the ioBroker object type based on the traversal level.
@@ -178,13 +177,12 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
     }
 }
 
-
 /**
  * Analyzes the modify element in stateAttr.js and executes the command.
  * @param {string} method Defines the method to be executed (e.g., "round(2)").
  * @param {string | number} value The value to be modified.
  * @returns {any} The modified value.
-*/
+ */
 function modify(method, value) {
     adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
     try {
@@ -260,7 +258,8 @@ function readWarnMessages() {
         const data = fs.readFileSync(`./warnMessages.json`, 'utf8');
         warnMessages = JSON.parse(data);
     } catch (error) {
-        if (error.message && error.message.includes('ENOENT') == false) adapter.log.error('Error in jsonExplorer at readWarnMessages: ' + error);
+        if (error.message && error.message.includes('ENOENT') == false)
+            adapter.log.error('Error in jsonExplorer at readWarnMessages: ' + error);
     }
 }
 
@@ -340,7 +339,8 @@ async function stateSetCreate(objName, name, value) {
 
         // Compare the new common object with the existing one to avoid unnecessary updates.
         // For objects and arrays (states, modify), a stringify comparison is used.
-        const needsUpdate = !existingObjectDefinition ||
+        const needsUpdate =
+            !existingObjectDefinition ||
             common.name !== existingObjectDefinition.name ||
             common.type !== existingObjectDefinition.type ||
             common.role !== existingObjectDefinition.role ||
@@ -351,7 +351,11 @@ async function stateSetCreate(objName, name, value) {
             JSON.stringify(common.modify) !== JSON.stringify(existingObjectDefinition.modify);
 
         if (needsUpdate) {
-            adapter.log.silly(`Object definition for '${objName}' requires update. New: ${JSON.stringify(common)}, Old: ${JSON.stringify(existingObjectDefinition)}`);
+            adapter.log.silly(
+                `Object definition for '${objName}' requires update. New: ${JSON.stringify(
+                    common,
+                )}, Old: ${JSON.stringify(existingObjectDefinition)}`,
+            );
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common,
@@ -369,8 +373,11 @@ async function stateSetCreate(objName, name, value) {
             if (common.modify) {
                 const modifiers = Array.isArray(common.modify) ? common.modify : [common.modify];
                 for (const mod of modifiers) {
-                    if (mod) { // Ensure modifier is not an empty string
-                        adapter.log.silly(`Applying modifier "${mod}" to value "${modifiedValue}" for state "${objName}"`);
+                    if (mod) {
+                        // Ensure modifier is not an empty string
+                        adapter.log.silly(
+                            `Applying modifier "${mod}" to value "${modifiedValue}" for state "${objName}"`,
+                        );
                         modifiedValue = modify(mod, modifiedValue);
                         adapter.log.silly(`Value after modification: "${modifiedValue}"`);
                     }
@@ -422,10 +429,11 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         const Sentry = sentryInstance.getSentryObject();
-                        Sentry && Sentry.withScope(scope => {
-                            scope.setLevel('info');
-                            Sentry.captureMessage(mObject);
-                        });
+                        Sentry &&
+                            Sentry.withScope(scope => {
+                                scope.setLevel('info');
+                                Sentry.captureMessage(mObject);
+                            });
                     } //else adapter.log.info('Sentry not available/activated');
                 } //else adapter.log.info('Sentry not available');
             } else if (mType == 'warn') {
@@ -433,12 +441,15 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         const Sentry = sentryInstance.getSentryObject();
-                        Sentry && Sentry.withScope(scope => {
-                            scope.setLevel('warning');
-                            if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
-                            Sentry.captureMessage(mObject);
-                            adapter.log.info(`Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`);
-                        });
+                        Sentry &&
+                            Sentry.withScope(scope => {
+                                scope.setLevel('warning');
+                                if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
+                                Sentry.captureMessage(mObject);
+                                adapter.log.info(
+                                    `Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`,
+                                );
+                            });
                     } else {
                         adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                     }
@@ -450,7 +461,9 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         sentryInstance.getSentryObject()?.captureException(mObject);
-                        adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`);
+                        adapter.log.info(
+                            `Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`,
+                        );
                     } else {
                         adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                     }
@@ -458,8 +471,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                 }
             }
-        }
-        else {
+        } else {
             adapter.log.warn(`Sentry disabled (debug mode), error catched: ${mObject}`);
         }
     } catch (error) {
@@ -512,7 +524,7 @@ async function setLastStartTime() {
     let onlineState = await adapter.getStateAsync('online');
     if (onlineState) onlineStateTS = onlineState.ts;
     //just update timestamp if last update is older than 10 seconds
-    if ((now - onlineStateTS) > 10000) {
+    if (now - onlineStateTS > 10000) {
         await stateSetCreate('online', 'online', true);
     }
 }
@@ -543,10 +555,10 @@ async function deleteObjectsWithNull(statePath) {
 }
 
 /**
-* @param {number} ms
-*/
+ * @param {number} ms
+ */
 function sleep(ms) {
-    return /** @type {Promise<void>} */(new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
+    return /** @type {Promise<void>} */ (new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
 }
 
 /**
@@ -578,5 +590,5 @@ module.exports = {
     path: path,
     sleep: sleep,
     sendVersionInfo: sendVersionInfo,
-    deleteObjectsWithNull: deleteObjectsWithNull
+    deleteObjectsWithNull: deleteObjectsWithNull,
 };
