@@ -1,11 +1,12 @@
 {
   "name": "iobroker-jsonexplorer",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "description": "Creates ioBroker states based on a json-object",
   "main": "jsonExplorer.js",
   "scripts": {
     "test": "mocha jsonExplorer.test.js",
-    "release": "release-script"
+    "release": "release-script",
+    "lint": "eslint -c eslint.config.mjs ."
   },
   "repository": {
     "type": "git",
@@ -24,8 +25,8 @@
   "homepage": "https://github.com/HGlab01/ioBroker-jsonExplorer#readme",
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
+    "@iobroker/eslint-config": "^2.2.0",
     "chai": "^6.0.1",
-    "eslint": "^9.36.0",
     "mocha": "^11.7.2",
     "sinon": "^21.0.0"
   }

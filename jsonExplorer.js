@@ -3,7 +3,9 @@
 const path = `${__dirname}`;
 const { version } = require('./package.json');
 const fs = require('fs');
-let stateExpire = {}, warnMessages = {}, stateAttr = {};
+let stateExpire = {},
+    warnMessages = {},
+    stateAttr = {};
 let adapter; //adapter-object initialized by init(); other functions do not need adapter-object in their signatur
 
 /**
@@ -17,7 +19,6 @@ function init(adapterOrigin, stateAttribute) {
     stateAttr = stateAttribute;
     adapter.subscribedStates = new Set();
 }
-
 
 /**
  * Traverses the json-object and provides all information for creating/updating states.
@@ -37,12 +38,11 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
             let parentName = '';
             if (replaceName) {
                 const object = await adapter.getObjectAsync(parent);
-                const  currentName = object?.common?.name;
-                parentName = jObject.name ? jObject.name : currentName || '';
+                parentName = jObject.name ?? object?.common?.name ?? '';
             }
 
             const objectType = getObjectType(level);
-            adapter.setObject(parent, {
+            await adapter.setObjectAsync(parent, {
                 type: objectType,
                 common: { name: parentName },
                 native: {},
@@ -68,7 +68,6 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
         sendSentry(error);
     }
 }
-
 
 /**
  * Determines the ioBroker object type based on the traversal level.
@@ -144,26 +143,46 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
     // If array contains objects, traverse each item. Otherwise, store as a single JSON string.
     if (currentValue.some(item => typeof item === 'object' && item !== null)) {
         currentValue.forEach((item, index) => {
-            const id = parent ? `${parent}.${key}.${index}` : `${key}.${index}`;
+            let id;
+            const itemKey = String(index); // Default key for array items is the index
+
             if (typeof item === 'object' && item !== null) {
-                traverseJson(item, id, replaceName, replaceID, level + 1);
+                // Determine the ID: use 'id' attribute if replaceID is true, otherwise use the index.
+                if (replaceID && item.id != null) {
+                    // Use the item's 'id' property for the path (e.g., ...devices.RU2948924928)
+                    id = parent ? `${parent}.${key}.${item.id}` : `${key}.${item.id}`;
+                } else {
+                    // Use the array index for the path (e.g., ...devices.0)
+                    id = parent ? `${parent}.${key}.${itemKey}` : `${key}.${itemKey}`;
+                }
+                // Replace forbidden characters in the generated ID
+                id = id.replace(adapter.FORBIDDEN_CHARS, '_');
+
+                // Recursive call for non-empty objects
+                if (Object.keys(item).length > 0) {
+                    traverseJson(item, id, replaceName, replaceID, level + 1);
+                } else {
+                    adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
+                }
             } else {
-                createLeafState(id, String(index), item);
+                // Handle primitive values within the array (non-objects)
+                id = parent ? `${parent}.${key}.${itemKey}` : `${key}.${itemKey}`;
+                createLeafState(id, itemKey, item);
             }
         });
     } else {
+        // Array contains only primitive values, store as a single JSON string.
         const id = parent ? `${parent}.${key}` : key;
         createLeafState(id, key, currentValue);
     }
 }
-
 
 /**
  * Analyzes the modify element in stateAttr.js and executes the command.
  * @param {string} method Defines the method to be executed (e.g., "round(2)").
  * @param {string | number} value The value to be modified.
  * @returns {any} The modified value.
-*/
+ */
 function modify(method, value) {
     adapter.log.silly(`Function modify with method "${method}" and value "${value}"`);
     try {
@@ -239,7 +258,8 @@ function readWarnMessages() {
         const data = fs.readFileSync(`./warnMessages.json`, 'utf8');
         warnMessages = JSON.parse(data);
     } catch (error) {
-        if (error.message && error.message.includes('ENOENT') == false) adapter.log.error('Error in jsonExplorer at readWarnMessages: ' + error);
+        if (error.message && error.message.includes('ENOENT') == false)
+            adapter.log.error('Error in jsonExplorer at readWarnMessages: ' + error);
     }
 }
 
@@ -319,7 +339,8 @@ async function stateSetCreate(objName, name, value) {
 
         // Compare the new common object with the existing one to avoid unnecessary updates.
         // For objects and arrays (states, modify), a stringify comparison is used.
-        const needsUpdate = !existingObjectDefinition ||
+        const needsUpdate =
+            !existingObjectDefinition ||
             common.name !== existingObjectDefinition.name ||
             common.type !== existingObjectDefinition.type ||
             common.role !== existingObjectDefinition.role ||
@@ -330,7 +351,11 @@ async function stateSetCreate(objName, name, value) {
             JSON.stringify(common.modify) !== JSON.stringify(existingObjectDefinition.modify);
 
         if (needsUpdate) {
-            adapter.log.silly(`Object definition for '${objName}' requires update. New: ${JSON.stringify(common)}, Old: ${JSON.stringify(existingObjectDefinition)}`);
+            adapter.log.silly(
+                `Object definition for '${objName}' requires update. New: ${JSON.stringify(
+                    common,
+                )}, Old: ${JSON.stringify(existingObjectDefinition)}`,
+            );
             await adapter.extendObjectAsync(objName, {
                 type: 'state',
                 common,
@@ -348,8 +373,11 @@ async function stateSetCreate(objName, name, value) {
             if (common.modify) {
                 const modifiers = Array.isArray(common.modify) ? common.modify : [common.modify];
                 for (const mod of modifiers) {
-                    if (mod) { // Ensure modifier is not an empty string
-                        adapter.log.silly(`Applying modifier "${mod}" to value "${modifiedValue}" for state "${objName}"`);
+                    if (mod) {
+                        // Ensure modifier is not an empty string
+                        adapter.log.silly(
+                            `Applying modifier "${mod}" to value "${modifiedValue}" for state "${objName}"`,
+                        );
                         modifiedValue = modify(mod, modifiedValue);
                         adapter.log.silly(`Value after modification: "${modifiedValue}"`);
                     }
@@ -378,11 +406,7 @@ async function stateSetCreate(objName, name, value) {
 
         // Subscribe to state changes if the state is writable.
         //TODO: Subscriben nur einmal! Checken ob bereits subsribed
-        subscribeIfNecessary(common, objName);
-        /*if (common.write) {
-            adapter.subscribeStates(objName);
-        }*/
-
+        subscribeIfNecessary(common.write, objName);
     } catch (error) {
         const errorMessage = `Error in function stateSetCreate() for '${objName}': ${error}`;
         adapter.log.error(errorMessage);
@@ -405,10 +429,11 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         const Sentry = sentryInstance.getSentryObject();
-                        Sentry && Sentry.withScope(scope => {
-                            scope.setLevel('info');
-                            Sentry.captureMessage(mObject);
-                        });
+                        Sentry &&
+                            Sentry.withScope(scope => {
+                                scope.setLevel('info');
+                                Sentry.captureMessage(mObject);
+                            });
                     } //else adapter.log.info('Sentry not available/activated');
                 } //else adapter.log.info('Sentry not available');
             } else if (mType == 'warn') {
@@ -416,12 +441,15 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         const Sentry = sentryInstance.getSentryObject();
-                        Sentry && Sentry.withScope(scope => {
-                            scope.setLevel('warning');
-                            if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
-                            Sentry.captureMessage(mObject);
-                            adapter.log.info(`Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`);
-                        });
+                        Sentry &&
+                            Sentry.withScope(scope => {
+                                scope.setLevel('warning');
+                                if (missingAttribute) scope.setExtra('missingAttribute', missingAttribute);
+                                Sentry.captureMessage(mObject);
+                                adapter.log.info(
+                                    `Warning catched and send to Sentry, thank you collaborating! Warn: ${mObject}`,
+                                );
+                            });
                     } else {
                         adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                     }
@@ -433,7 +461,9 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     const sentryInstance = adapter.getPluginInstance('sentry');
                     if (sentryInstance) {
                         sentryInstance.getSentryObject()?.captureException(mObject);
-                        adapter.log.info(`Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`);
+                        adapter.log.info(
+                            `Error catched and send to Sentry, thank you collaborating! Error: ${mObject}`,
+                        );
                     } else {
                         adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                     }
@@ -441,8 +471,7 @@ function sendSentry(mObject, mType = 'error', missingAttribute = null) {
                     adapter.log.warn(`Sentry disabled, error catched: ${mObject}`);
                 }
             }
-        }
-        else {
+        } else {
             adapter.log.warn(`Sentry disabled (debug mode), error catched: ${mObject}`);
         }
     } catch (error) {
@@ -495,7 +524,7 @@ async function setLastStartTime() {
     let onlineState = await adapter.getStateAsync('online');
     if (onlineState) onlineStateTS = onlineState.ts;
     //just update timestamp if last update is older than 10 seconds
-    if ((now - onlineStateTS) > 10000) {
+    if (now - onlineStateTS > 10000) {
         await stateSetCreate('online', 'online', true);
     }
 }
@@ -526,21 +555,20 @@ async function deleteObjectsWithNull(statePath) {
 }
 
 /**
-* @param {number} ms
-*/
+ * @param {number} ms
+ */
 function sleep(ms) {
-    return /** @type {Promise<void>} */(new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
+    return /** @type {Promise<void>} */ (new Promise(resolve => adapter.setTimeout(() => resolve(), ms)));
 }
 
 /**
  * Subscribes to a state if it is writable and not already subscribed.
  *
- * @param {Object} common - The common object containing state properties.
- * @param {boolean} common.write - Indicates if the state is writable.
+ * @param {boolean} isWritable - Indicates if the state is writable.
  * @param {string} objName - The name of the state to subscribe to.
  */
-function subscribeIfNecessary(common, objName) {
-    if (common.write) {
+function subscribeIfNecessary(isWritable, objName) {
+    if (isWritable) {
         if (!adapter.subscribedStates.has(objName)) {
             adapter.subscribeStates(objName);
             adapter.subscribedStates.add(objName);
@@ -562,5 +590,5 @@ module.exports = {
     path: path,
     sleep: sleep,
     sendVersionInfo: sendVersionInfo,
-    deleteObjectsWithNull: deleteObjectsWithNull
+    deleteObjectsWithNull: deleteObjectsWithNull,
 };
