@@ -27,7 +27,7 @@
     "@alcalzone/release-script": "^3.8.0",
     "@iobroker/eslint-config": "^2.2.0",
     "chai": "^6.0.1",
-    "mocha": "^11.7.2",
+    "mocha": "^11.7.4",
     "sinon": "^21.0.0"
   }
 }
