@@ -72,7 +72,7 @@ async function traverseJson(
         for (const key in jObject) {
             const currentValue = jObject[key];
             if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)) {
-                handleObject(key, currentValue, parent, replaceName, replaceID, level);
+                handleObject(key, currentValue, parent, replaceName, replaceID, level, validateAttribute);
             } else if (Array.isArray(currentValue)) {
                 handleArray(key, currentValue, parent, replaceName, replaceID, level, validateAttribute);
             } else {
@@ -128,8 +128,9 @@ function createLeafState(id, name, value, validateAttribute) {
  * @param {boolean} replaceName Flag to replace the name.
  * @param {boolean} replaceID Flag to replace the ID.
  * @param {number} level The current traversal level.
+ * @param {boolean} validateAttribute If true, validates attributes against stateAttr.js definitions.
  */
-function handleObject(key, currentValue, parent, replaceName, replaceID, level) {
+function handleObject(key, currentValue, parent, replaceName, replaceID, level, validateAttribute) {
     adapter.log.silly(`Traverse object '${key}' with value '${currentValue}' and type '${typeof currentValue}'`);
 
     let id;
@@ -142,7 +143,7 @@ function handleObject(key, currentValue, parent, replaceName, replaceID, level) 
 
     // Avoid channel creation for empty objects.
     if (Object.keys(currentValue).length > 0) {
-        traverseJson(currentValue, id, replaceName, replaceID, level + 1);
+        traverseJson(currentValue, id, replaceName, replaceID, level + 1, validateAttribute);
     } else {
         adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
     }
@@ -181,7 +182,7 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level, v
 
                 // Recursive call for non-empty objects
                 if (Object.keys(item).length > 0) {
-                    traverseJson(item, id, replaceName, replaceID, level + 1);
+                    traverseJson(item, id, replaceName, replaceID, level + 1, validateAttribute);
                 } else {
                     adapter.log.silly(`State '${id}' received with empty object, ignore channel creation`);
                 }
