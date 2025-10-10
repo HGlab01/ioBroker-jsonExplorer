@@ -24,11 +24,30 @@ function init(adapterOrigin, stateAttribute) {
  * Traverses the json-object and provides all information for creating/updating states.
  * @param {object} jObject JSON object to be added as states.
  * @param {string | null} [parent=null] Defines the parent object in the state tree.
- * @param {boolean} [replaceName=false] If true, uses the 'name' property from a child object as the name for the structure element (channel).
+ * @param {boolean | object} param1 - If boolean, indicates whether to replace the name of the parent object with the 'name' property from the child object. If object, it can contain {replaceName: boolean, replaceID: boolean, validateAttribute:boolean}.
  * @param {boolean} [replaceID=false] If true, uses the 'id' property from a child object as the ID for the structure element (channel).
  * @param {number} [level=0] The current depth in the JSON structure, used to determine object type (0: device, 1: channel, >1: folder).
+ * @param {boolean} [validateAttribute=false] If true, validates attributes against stateAttr.js definitions.
  */
-async function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
+//async function traverseJson(jObject, parent = null, replaceName = false, replaceID = false, level = 0) {
+async function traverseJson(
+    jObject,
+    parent = null,
+    param = false,
+    _replaceID = false,
+    _level = 0,
+    _validateAttribute = true,
+) {
+    let replaceName, replaceID, level, validateAttribute;
+    if (typeof param === 'object' && param !== null) {
+        ({ replaceName, replaceID, level, validateAttribute } = param);
+    } else {
+        replaceName = param;
+        replaceID = _replaceID;
+        level = _level;
+        validateAttribute = _validateAttribute;
+    }
+
     if (parent) {
         parent = parent.replace(adapter.FORBIDDEN_CHARS, '_');
     }
@@ -55,10 +74,10 @@ async function traverseJson(jObject, parent = null, replaceName = false, replace
             if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)) {
                 handleObject(key, currentValue, parent, replaceName, replaceID, level);
             } else if (Array.isArray(currentValue)) {
-                handleArray(key, currentValue, parent, replaceName, replaceID, level);
+                handleArray(key, currentValue, parent, replaceName, replaceID, level, validateAttribute);
             } else {
                 const id = parent ? `${parent}.${key}` : key;
-                createLeafState(id, key, currentValue);
+                createLeafState(id, key, currentValue, validateAttribute);
             }
         }
     } catch (error) {
@@ -85,8 +104,9 @@ function getObjectType(level) {
  * @param {string} id The ID of the state.
  * @param {string} name The name of the state.
  * @param {any} value The value to set.
+ * @param {boolean} validateAttribute If true, validates attributes against stateAttr.js definitions.
  */
-function createLeafState(id, name, value) {
+function createLeafState(id, name, value, validateAttribute) {
     let finalValue = value;
     // Stringify objects/arrays that are not traversed recursively.
     if (finalValue !== null && typeof finalValue === 'object') {
@@ -96,7 +116,7 @@ function createLeafState(id, name, value) {
     // Avoid creating states for empty stringified arrays.
     if (finalValue !== '[]') {
         adapter.log.silly(`create id '${id}' with value '${finalValue}' and name '${name}'`);
-        stateSetCreate(id, name, finalValue);
+        stateSetCreate(id, name, finalValue, validateAttribute);
     }
 }
 
@@ -136,8 +156,9 @@ function handleObject(key, currentValue, parent, replaceName, replaceID, level) 
  * @param {boolean} replaceName Flag to replace the name.
  * @param {boolean} replaceID Flag to replace the ID.
  * @param {number} level The current traversal level.
+ * @param {boolean} validateAttribute If true, validates attributes against stateAttr.js definitions.
  */
-function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
+function handleArray(key, currentValue, parent, replaceName, replaceID, level, validateAttribute) {
     adapter.log.silly(`Traverse array '${key}' with length ${currentValue.length}`);
 
     // If array contains objects, traverse each item. Otherwise, store as a single JSON string.
@@ -167,13 +188,13 @@ function handleArray(key, currentValue, parent, replaceName, replaceID, level) {
             } else {
                 // Handle primitive values within the array (non-objects)
                 id = parent ? `${parent}.${key}.${itemKey}` : `${key}.${itemKey}`;
-                createLeafState(id, itemKey, item);
+                createLeafState(id, itemKey, item, validateAttribute);
             }
         });
     } else {
         // Array contains only primitive values, store as a single JSON string.
         const id = parent ? `${parent}.${key}` : key;
-        createLeafState(id, key, currentValue);
+        createLeafState(id, key, currentValue, validateAttribute);
     }
 }
 
@@ -284,8 +305,9 @@ function sendVersionInfo(versionInfo) {
  * @param {string} objName ID of the object
  * @param {string} name Name of state (also used for stattAttrlib!)
  * @param {any} value Value of the state
+ * @param {boolean} [validateAttribute=true] If true, validates attributes against stateAttr.js definitions.
  */
-async function stateSetCreate(objName, name, value) {
+async function stateSetCreate(objName, name, value, validateAttribute = true) {
     adapter.log.silly(`stateSetCreate called for '${objName}' with value '${value}'`);
     try {
         // Get attributes from stateAttr library, or an empty object if not defined.
@@ -305,7 +327,7 @@ async function stateSetCreate(objName, name, value) {
         }
 
         // If state attribute is missing, log a warning once.
-        if (!stateAttr[name]) {
+        if (!stateAttr[name] && validateAttribute) {
             const newWarnMessage = `State attribute definition missing for '${name}' with value '${value}' (type: ${typeof value})`;
             if (warnMessages[name] === undefined) {
                 warnMessages[name] = newWarnMessage;
