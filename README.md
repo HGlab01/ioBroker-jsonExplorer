@@ -48,6 +48,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### 0.2.1-alpha.0 (2025-10-10)
+* (HGlab01) warn missing attribute definition on/off #254
+
 ### 0.2.0 (2025-10-06)
 * (HGlab01) folders (level>1) are created in addition to devices (level==0) & channels (level==1)
 * (HGlab01) refactorings
@@ -64,9 +67,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 * (HGlab01) add versionInfo
 * (HGlab01) add modify-methods 'toFloat' and 'toInteger'
 * (DutchmanNL) couple of code improvements
-
-### 0.1.13 (2023-10-03)
-* (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
 
 ## License
 MIT License

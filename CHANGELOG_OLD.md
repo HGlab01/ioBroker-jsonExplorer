@@ -1,4 +1,7 @@
 # Older changes
+## 0.1.13 (2023-10-03)
+* (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
+
 ## 0.1.12 (2023-07-03)
 * (HGlab01) Improve statename verification
 
