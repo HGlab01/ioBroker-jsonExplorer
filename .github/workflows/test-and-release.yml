@@ -50,6 +50,7 @@ jobs:
     # Write permissions are required to create Github releases
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - uses: ioBroker/testing-action-deploy@v1
@@ -57,7 +58,6 @@ jobs:
           node-version: '22.x'
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
-          npm-token: ${{ secrets.NPM_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
           # When using Sentry for error reporting, Sentry can be informed about new releases
@@ -69,3 +69,4 @@ jobs:
           ##sentry-version-prefix: "iobroker.tado"
           # If your sentry project is linked to a GitHub repository, you can enable the following option
           # sentry-github-integration: true
+
