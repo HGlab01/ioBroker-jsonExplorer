@@ -1,4 +1,9 @@
 # Older changes
+## 0.1.14 (2023-10-08)
+* (HGlab01) add versionInfo
+* (HGlab01) add modify-methods 'toFloat' and 'toInteger'
+* (DutchmanNL) couple of code improvements
+
 ## 0.1.13 (2023-10-03)
 * (HGlab01) fix #113 "Cannot read properties of undefined (reading 'Warning')"
 

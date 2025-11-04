@@ -48,6 +48,9 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### 0.2.2-alpha.0 (2025-11-04)
+* (HGlab01) manage traverseJson() receives null-object
+
 ### 0.2.1 (2025-10-11)
 * (HGlab01) warn missing attribute definition on/off
 * (HGlab01) fix refactoring bug
@@ -63,11 +66,6 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
 
 ### 0.1.15 (2023-12-11)
 * (HGlab01) fix coding-typo
-
-### 0.1.14 (2023-10-08)
-* (HGlab01) add versionInfo
-* (HGlab01) add modify-methods 'toFloat' and 'toInteger'
-* (DutchmanNL) couple of code improvements
 
 ## License
 MIT License
