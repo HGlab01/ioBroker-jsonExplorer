@@ -38,6 +38,7 @@ async function traverseJson(
     _level = 0,
     _validateAttribute = true,
 ) {
+    if (jObject == null) return;
     let replaceName, replaceID, level, validateAttribute;
     if (typeof param === 'object' && param !== null) {
         ({ replaceName, replaceID, level, validateAttribute } = param);
