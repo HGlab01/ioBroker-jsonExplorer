@@ -48,7 +48,7 @@ https://github.com/HGlab01/ioBroker.fuelpricemonitor
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-### 0.2.2-alpha.0 (2025-11-04)
+### 0.2.2 (2025-11-05)
 * (HGlab01) manage traverseJson() receives null-object
 
 ### 0.2.1 (2025-10-11)
