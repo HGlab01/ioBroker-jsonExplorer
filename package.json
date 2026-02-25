@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/HGlab01/ioBroker-jsonExplorer#readme",
   "devDependencies": {
-    "@alcalzone/release-script": "^5.0.0",
+    "@alcalzone/release-script": "^5.1.1",
     "@iobroker/eslint-config": "^2.2.0",
     "chai": "^6.2.2",
     "mocha": "^11.7.5",
